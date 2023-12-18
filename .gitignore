@@ -6,3 +6,4 @@ venv
 __pytest_cache__
 .coverage
 .DS_Store
+__pycache__/
