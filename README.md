@@ -42,3 +42,6 @@ And, after the script is run, would look like:
         - `recording_18.csv`
 
 At the end of each month, the month folder will contain only two csv files, `watering.csv` and `recording.csv`.
+
+### Requirements to run
+Written to use a .env file with AWS_SECRET_ACCESS_KEY, AWS_ACCESS_KEY_ID, BUCKET_NAME.
