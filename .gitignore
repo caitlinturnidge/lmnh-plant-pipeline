@@ -1,0 +1,8 @@
+.env
+.terraform
+*.csv
+*.json
+venv
+__pytest_cache__
+.coverage
+.DS_Store
