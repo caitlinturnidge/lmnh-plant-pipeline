@@ -8,10 +8,15 @@ from sqlalchemy import create_engine, sql
 
 def get_database_connection():
     """Returns the connection to the database."""
-    engine = create_engine(
-        f"""mssql+pymssql://{environ['DB_USER']}:{environ['DB_PASSWORD']}@{environ['DB_HOST']}
-            /?charset=utf8""")
-    return engine.connect()
+    try:
+        engine = create_engine(
+            f"mssql+pymssql://{environ['DB_USER']}:{environ['DB_PASSWORD']}@{environ['DB_HOST']}/?charset=utf8"
+        )
+        connection = engine.connect()
+        return connection
+    except Exception as e:
+        print(f"Error creating database connection: {e}")
+        raise e
 
 
 def get_recordings_csv() -> list:
@@ -37,7 +42,7 @@ def upload_recordings(conn) -> None:
         for row in data:
             query = sql.text(
                 f"""INSERT INTO {environ['DB_SCHEMA']}.recording (plant_id, soil_moisture, temperature, datetime) 
-                    VALUES (:plant_id, :soil_moisture, :temperature, :datetime)""")
+                    VALUES (:plant_id, :soil_moisture, :temperature, :recording_taken)""")
             conn.execute(query, row)
 
         conn.execute(sql.text("COMMIT;"))
@@ -57,7 +62,7 @@ def upload_waterings(conn) -> None:
         for row in data:
             query = sql.text(
                 f"""INSERT INTO {environ['DB_SCHEMA']}.watering (plant_id, datetime) 
-                    VALUES (:plant_id, :datetime)""")
+                    VALUES (:plant_id, :last_watered)""")
             conn.execute(query, row)
 
         conn.execute(sql.text("COMMIT;"))
