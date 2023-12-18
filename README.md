@@ -41,11 +41,4 @@ And, after the script is run, would look like:
         - `watering_18.csv`
         - `recording_18.csv`
 
-At the end of each month, the month folder will contain only two csv files, `watering.csv` and `recording.csv`
-
-Edge cases:
-
-
-
-
-
+At the end of each month, the month folder will contain only two csv files, `watering.csv` and `recording.csv`.
