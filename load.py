@@ -1,6 +1,6 @@
 """File to load the clean recording and watering data into the short term database."""
-from os import environ
 import csv
+from os import environ
 
 from dotenv import load_dotenv
 from sqlalchemy import create_engine, sql
