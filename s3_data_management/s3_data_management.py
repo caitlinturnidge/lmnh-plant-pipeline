@@ -16,7 +16,7 @@ YESTERDAY = TODAY - timedelta(days=1)
 
 
 def get_bucket_keys(s3_client: client, folder_path: str,
-                    bucket_name: str = environ['BUCKET_NAME']):
+                    bucket_name: str = environ['BUCKET_NAME']) -> list:
     """
     Returns list of keys of csv files within a given s3 bucket, with a prefix matching the given
     folder_path.
@@ -31,7 +31,6 @@ def save_df_to_s3_bucket(s3_client: client, df: pd.DataFrame,
                          key: str, bucket: str = environ['BUCKET_NAME']):
     """Function to save a pandas dataframe to the given s3 bucket."""
     file_body = df.to_csv()
-
     s3_client.put_object(Body = file_body, Bucket = bucket, Key = key)
 
 
