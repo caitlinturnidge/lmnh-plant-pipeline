@@ -22,7 +22,6 @@ def get_bucket_keys(s3_client: client, folder_path: str,
     folder_path.
     """
     objects = s3_client.list_objects(Bucket=bucket_name, Prefix=folder_path).get('Contents')
-    print([obj['Key'] for obj in objects])
     if objects:
         return [obj['Key'] for obj in objects if obj['Key'].split('.')[-1] == 'csv']
     return []
