@@ -59,7 +59,7 @@ if __name__ == "__main__":
     plant_data_list = []
     location_data_list = []
 
-    for plant_id in range(51):
+    for plant_id in range(10):
         data = get_plant_data(plant_id)
 
         recording_data = get_recording_data(data)
@@ -80,10 +80,6 @@ if __name__ == "__main__":
     watering_df = pd.DataFrame(watering_data_list)
     botanist_df = pd.DataFrame(cleaned_botanist_data_list)
     plant_df = pd.DataFrame(plant_data_list)
-
-    print(botanist_df)
-    print()
-    print(plant_df)
 
     recording_df['recording_taken'] = pd.to_datetime(
         recording_df['recording_taken'])
