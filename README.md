@@ -113,5 +113,6 @@ the relevant files in s3 (automatically creates if none exist), and delete from 
 Entire functionality is run by calling function `update_rds_and_s3()`, with no arguments, which is called automatically when the function is run from the commandline.
 
 ### Requirements to run
+- Assumes same s3 file structure as detailed in notes for `s3_data_management/`
 - Written to use a .env file with AWS_SECRET_ACCESS_KEY, AWS_ACCESS_KEY_ID, BUCKET_NAME, DB_HOST, BB_PORT, DB_NAME, DB_SCHEMA, DB_USER, DB_PASSWORD
 - Library requirements in file `requirements.txt` in parent directory
