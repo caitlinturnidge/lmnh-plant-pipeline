@@ -44,8 +44,8 @@ GO
 CREATE TABLE s_beta.botanist(
     "id" INT IDENTITY(1,1),
     "email" VARCHAR(350) NOT NULL,
-    "firstname" VARCHAR(255) NOT NULL,
-    "lastname" VARCHAR(255) NOT NULL,
+    "firstname" VARCHAR(100) NOT NULL,
+    "lastname" VARCHAR(100) NOT NULL,
     "phone" VARCHAR(30) NOT NULL
 );
 GO
