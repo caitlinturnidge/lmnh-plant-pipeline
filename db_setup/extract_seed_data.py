@@ -60,6 +60,8 @@ def get_plant_details(data: dict, locations: list[dict]) -> dict:
     relevant_cols = ['plant_id', 'name', 'scientific_name', 'origin_location']
 
     details = {key: data.get(key) for key in relevant_cols}
+    if details["scientific_name"]:
+        details["scientific_name"] = details["scientific_name"][0]
     details["origin_location"] = cross_reference_location(details["origin_location"], locations)
     return details
 
