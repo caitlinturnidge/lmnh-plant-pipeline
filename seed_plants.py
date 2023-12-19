@@ -1,5 +1,6 @@
 
 import requests
+import pandas as pd
 
 
 BASE_URL = "https://data-eng-plants-api.herokuapp.com/plants/"
@@ -13,13 +14,15 @@ def get_plant_data(plant_id: int) -> list[dict]:
 def parse_location(location_info: list) -> dict:
     """Turns a list with location info into a dictionary."""
     location = {}
+    if not location_info:
+        return location
+    
     if len(location_info) == 5:
-        location["latitute"] = location_info[0]
+        location["latitude"] = location_info[0]
         location["longitude"] = location_info[1]
         location["town"] = location_info[2]
         location["country_code"] = location_info[3]
         location["continent"], location["city"] = location_info[4].split("/")
-     
     return location
 
 
@@ -27,7 +30,7 @@ def generate_location_id(locations: list[dict]) -> int:
     """Finds the highest ID number and returns the following number in the sequence."""
     if not locations:
         return 1
-    return max([loc["id"] for loc in locations]) + 1
+    return int(max([loc["id"] for loc in locations]) + 1)
 
 
 def cross_reference_location(location_info: list[str], unique_locations: list[dict]) -> int:
@@ -36,9 +39,12 @@ def cross_reference_location(location_info: list[str], unique_locations: list[di
     Returns the assigned ID to the location.
     """
     current_location = parse_location(location_info)
+    if current_location == {}:
+        return None
+    
     current_lat = current_location["latitude"]
     current_long = current_location["longitude"]
-
+    
     for location in unique_locations:
          if location["latitude"] == current_lat and location["longitude"] == current_long:
               return location["id"]
@@ -67,6 +73,7 @@ if __name__ == "__main__":
         result = get_plant_data(plant_id)
         details = get_plant_details(result, unique_locations)
         plant_info.append(details)
-
-    print(plant_info)
-
+    
+    
+    location_details = pd.DataFrame(unique_locations)
+    plant_details = pd.DataFrame(plant_info)
