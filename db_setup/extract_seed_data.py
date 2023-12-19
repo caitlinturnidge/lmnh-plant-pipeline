@@ -77,3 +77,6 @@ if __name__ == "__main__":
     
     location_details = pd.DataFrame(unique_locations)
     plant_details = pd.DataFrame(plant_info)
+
+    location_details.to_csv("seed_locations.csv")
+    plant_details.to_csv("seed_plants.csv")
