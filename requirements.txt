@@ -1,11 +1,10 @@
-# s3_data_management/
-pandas
 pytest
 pylint
+
+# s3_data_management/
+pandas
 requests
 
-# Extract.py
+# Extract.py 
 sqlalchemy
 python-dotenv
-pytest
-
