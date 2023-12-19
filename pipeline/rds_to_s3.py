@@ -12,6 +12,7 @@ from sqlalchemy.engine.base import Connection
 from boto3 import client
 
 
+load_dotenv()
 STR_DAY_AGO = (datetime.now() - timedelta(hours=24)).strftime("%Y-%m-%d %H:%M:%S")
 TODAY = datetime.today()
 
@@ -20,7 +21,7 @@ def get_database_engine():
     """Returns the database engine."""
     try:
         engine = db.create_engine(
-            f"mssql+pymssql://{environ['DB_USER']}:{environ['DB_PASSWORD']}@{environ['DB_HOST']}/?charset=utf8"
+            f"mssql+pymssql://{environ['DB_USER']}:{environ['DB_PASSWORD']}@{environ['DB_HOST']}:{environ['DB_PORT']}/{environ['DB_NAME']}?charset=utf8"
         )
         return engine
     except Exception as e:
@@ -35,9 +36,8 @@ def get_old_records(table_name: str, db_engine: db.Engine, connection: Connectio
     (watering/recording).
     """
     try:
-        table = db.Table(f"{environ['DB_SCHEMA']}.{table_name}", metadata, autoload=True,
-                         autoload_with=db_engine)
-        query = db.select([table]).where(table.columns.datetime < date_cutoff)
+        table = db.Table(table_name, metadata, autoload_with=db_engine)
+        query = db.select(table).where(table.columns.datetime < str.encode(date_cutoff))
         response = connection.execute(query)
         return pd.DataFrame(response.fetchall())
 
@@ -71,7 +71,7 @@ def get_current_csv_data(data_type: str, s3_client: client, bucket_name:
         type_key = type_keys[0]
         response = s3_client.get_object(Bucket=bucket_name, Key = type_key)
         return pd.read_csv(response.get("Body"))
-    return pd.DataFrame
+    return pd.DataFrame()
 
 
 def upload_to_s3(data_type: str, df: pd.DataFrame, s3_client,
@@ -82,15 +82,16 @@ def upload_to_s3(data_type: str, df: pd.DataFrame, s3_client,
 
 
 
-def delete_oldest_records(table_name: str, db_engine: db.Engine, connection: Connection, metadata):
+def delete_oldest_records(table_name: str, db_engine: db.Engine, connection: Connection, metadata,
+                          date_cutoff: str = STR_DAY_AGO):
     """
     Deletes records older than 24 hours (by attribute 'datetime') from db table with given name
     (watering/recording).
     """
     try:
-        table = db.Table(f"{environ['DB_SCHEMA']}.{table_name}", metadata, autoload=True,
+        table = db.Table(table_name, metadata, autoload=True,
                          autoload_with=db_engine)
-        query = db.delete([table]).where(table.columns.datetime < STR_DAY_AGO)
+        query = db.delete(table).where(table.columns.datetime < str.encode(date_cutoff))
         connection.execute(query)
         connection.commit()
     except Exception as e:
@@ -105,7 +106,7 @@ def update_rds_and_s3():
     """
     db_engine = get_database_engine()
     db_connection = db_engine.connect()
-    db_metadata = db.MetaData()
+    db_metadata = db.MetaData(schema=environ['DB_SCHEMA'])
 
     s3_client = client("s3",
                        aws_access_key_id=environ['AWS_ACCESS_KEY_ID'],
@@ -113,11 +114,10 @@ def update_rds_and_s3():
 
     for data_type in ['recording', 'watering']:
         df = get_old_records(data_type, db_engine, db_connection, db_metadata)
-        df = pd.concat(df, get_current_csv_data(data_type, s3_client))
+        df = pd.concat([df, get_current_csv_data(data_type, s3_client)])
         upload_to_s3(data_type, df, s3_client)
-        delete_oldest_records(data_type, db_engine, db_engine, db_metadata)
+        delete_oldest_records(data_type, db_engine, db_connection, db_metadata)
 
 
 if __name__ == "__main__":
-    load_dotenv()
     update_rds_and_s3()
