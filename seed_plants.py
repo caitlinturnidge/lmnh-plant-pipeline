@@ -44,7 +44,7 @@ def cross_reference_location(location_info: list[str], unique_locations: list[di
     
     current_lat = current_location["latitude"]
     current_long = current_location["longitude"]
-    
+
     for location in unique_locations:
          if location["latitude"] == current_lat and location["longitude"] == current_long:
               return location["id"]
