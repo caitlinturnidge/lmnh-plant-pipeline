@@ -136,7 +136,7 @@ if __name__ == "__main__":
         recording_df['recording_taken'])
     recording_df = recording_df.rename(columns={'recording_taken': 'datetime'})
     watering_df['last_watered'] = pd.to_datetime(
-        watering_df['last_watered'])
+        watering_df['last_watered']).dt.tz_localize(None)
     watering_df = watering_df.rename(columns={'last_watered': 'datetime'})
 
     recording_df.to_csv('recording_data_SAMPLE.csv', index=False)
