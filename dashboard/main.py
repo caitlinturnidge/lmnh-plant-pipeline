@@ -43,7 +43,7 @@ def get_soil_moisture_chart(chart_data: pd.DataFrame) -> alt.Chart:
         # titleFontSize=AXIS_LABEL_FONT_SIZE,
     ).configure_title(
         # fontSize=TITLE_FONT_SIZE,
-    )
+    ).interactive()
 
     return chart
 
@@ -89,7 +89,7 @@ if __name__ == "__main__":
         data_multi['recording_taken'])
     data_multi.head()
 
-    st.sidebar.header('Plant Health Tracker')
+    st.sidebar.title('Plant Health Tracker')
 
     selected_plant = st.sidebar.selectbox(
         'Select Plant', data_multi['plant_id'].unique())
@@ -103,7 +103,6 @@ if __name__ == "__main__":
 
     RESAMPLE_RATE = f'{resample_rate}T'
 
-    # Time range sliders
     total_hours = data['recording_taken'].max() - data['recording_taken'].min()
     total_hours = total_hours.total_seconds() / 3600
 
@@ -129,20 +128,27 @@ if __name__ == "__main__":
     latest_data = data.iloc[-1]
 
     moisture_data = get_moisture_data(filtered_data)
-    chart = get_soil_moisture_chart(moisture_data)
 
-    st.header('Soil Moisture')
+    st.header('🚿 Soil Moisture')
     st.metric('Current Soil Moisture', f"{latest_data['soil_moisture']:.2f}%")
-    st.altair_chart(chart)
+    st.altair_chart(get_soil_moisture_chart(moisture_data))
 
     st.divider()
 
     temperature_data = get_temperature_data(data)
-    chart = get_temperature_chart(temperature_data)
 
-    st.header('Temperature')
-    st.metric('Current Temperature', f"{latest_data['temperature']:.2f}°C")
-    st.altair_chart(chart)
+    st.header('🌡️ Temperature')
+    st.metric('Current Temperature', f"{latest_data['temperature']:.1f}°C")
+    st.altair_chart(get_temperature_chart(temperature_data))
 
-    st.sidebar.image('https://perenual.com/storage/species_image/2961_ficus_elastica/small/533092219_8da73ba0d2_b.jpg',
-                     caption='Plant 34')
+    image_dict = {
+        0: 'https://perenual.com/storage/species_image/2773_epipremnum_aureum/medium/2560px-Epipremnum_aureum_31082012.jpg',
+        1: 'https://perenual.com/storage/species_image/1007_asclepias_curassavica/small/51757177616_7ca0baaa87_b.jpg',
+        2: 'https://perenual.com/storage/species_image/2015_colocasia_esculenta/small/24325097844_14719030a3_b.jpg',
+        3: 'https://perenual.com/storage/species_image/2868_euphorbia_cotinifolia/small/51952243235_061102bd05_b.jpg',
+        4: 'https://perenual.com/storage/species_image/855_anthurium_andraeanum/small/49388458462_0ef650db39_b.jpg',
+        5: 'https://perenual.com/storage/species_image/2045_cordyline_fruticosa/small/2560px-Cordyline_fruticosa_Rubra_1.jpg',
+        6: 'https://perenual.com/storage/species_image/2961_ficus_elastica/small/533092219_8da73ba0d2_b.jpg',
+    }
+    st.sidebar.image(image_dict.get(selected_plant),
+                     caption=f'Plant {selected_plant}')
