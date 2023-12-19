@@ -117,6 +117,8 @@ def update_rds_and_s3():
         df = pd.concat([df, get_current_csv_data(data_type, s3_client)])
         upload_to_s3(data_type, df, s3_client)
         delete_oldest_records(data_type, db_engine, db_connection, db_metadata)
+    
+    db_connection.close()
 
 
 if __name__ == "__main__":
