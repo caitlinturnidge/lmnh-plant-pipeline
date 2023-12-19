@@ -3,19 +3,19 @@ import csv
 from os import environ
 
 from dotenv import load_dotenv
-from sqlalchemy import create_engine, sql
+import sqlalchemy as db
+from sqlalchemy.engine.base import Connection
 
 
-def get_database_connection():
-    """Returns the connection to the database."""
+def get_database_engine():
+    """Returns the database engine."""
     try:
-        engine = create_engine(
+        engine = db.create_engine(
             f"mssql+pymssql://{environ['DB_USER']}:{environ['DB_PASSWORD']}@{environ['DB_HOST']}:{environ['DB_PORT']}/{environ['DB_NAME']}?charset=utf8"
         )
-        connection = engine.connect()
-        return connection
+        return engine
     except Exception as e:
-        print(f"Error creating database connection: {e}")
+        print(f"Error creating database engine: {e}")
         raise e
 
 
@@ -31,50 +31,40 @@ def get_waterings_csv() -> list:
         return list(csv.DictReader(csv_file))
 
 
-def upload_recordings(conn) -> None:
+def upload_recordings(conn: Connection, table: db.Table) -> None:
     """Uploads recording data to the database."""
     data = get_recordings_csv()
 
     try:
-        conn.execute(sql.text("BEGIN TRANSACTION;"))
-
-        for row in data:
-            query = sql.text(
-                f"""INSERT INTO {environ['DB_SCHEMA']}.recording (plant_id, soil_moisture, temperature, datetime) 
-                    VALUES (:plant_id, :soil_moisture, :temperature, :recording_taken)""")
-            conn.execute(query, row)
-
-        conn.execute(sql.text("COMMIT;"))
+        conn.execute(table.insert(), data)
+        conn.commit()
     except Exception as e:
-        conn.execute(sql.text("ROLLBACK;"))
+        conn.rollback()
         raise e
 
 
-def upload_waterings(conn) -> None:
+def upload_waterings(conn: Connection, table: db.Table) -> None:
     """Uploads watering data to the database."""
     data = get_waterings_csv()
 
     try:
-        conn.execute(sql.text("BEGIN TRANSACTION;"))
-
-        for row in data:
-            query = sql.text(
-                f"""INSERT INTO {environ['DB_SCHEMA']}.watering (plant_id, datetime) 
-                    VALUES (:plant_id, :last_watered)""")
-            conn.execute(query, row)
-
-        conn.execute(sql.text("COMMIT;"))
+        conn.execute(table.insert(), data)
+        conn.commit()
     except Exception as e:
-        conn.execute(sql.text("ROLLBACK;"))
+        conn.rollback()
         raise e
 
 
 def load() -> None:
     """Main function to run the whole load script."""
-    connection = get_database_connection()
-    upload_recordings(connection)
-    upload_waterings(connection)
-    connection.close()
+    db_engine = get_database_engine()
+    db_connection = db_engine.connect()
+    db_metadata = db.MetaData(schema=environ['DB_SCHEMA'])
+    recording_table = db.Table("recording", db_metadata, autoload_with=db_engine)
+    watering_table = db.Table("watering", db_metadata, autoload_with=db_engine)
+    upload_recordings(db_connection, recording_table)
+    upload_waterings(db_connection, watering_table)
+    db_connection.close()
 
 
 if __name__ == "__main__":
