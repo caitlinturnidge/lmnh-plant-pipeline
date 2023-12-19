@@ -62,7 +62,7 @@ def get_current_csv_data(data_type: str, s3_client: client, bucket_name:
                          str = environ['BUCKET_NAME'], date: str = TODAY) -> pd.DataFrame:
     """
     Downloads relevant files of specified data_type (watering/recording) from S3 to local, and
-    then returns it as a pandas dataframe
+    then returns it as a pandas dataframe.
     """
 
     folder_path = f'{date.year}/{date.month}'
