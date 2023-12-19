@@ -7,17 +7,6 @@ BASE_URL = 'https://data-eng-plants-api.herokuapp.com/plants/'
 NO_OF_PLANTS = 51
 
 
-def get_plant_data(plant_id: int) -> dict:
-    """Gets plant data from API using ID."""
-
-    api_data = requests.get(BASE_URL + str(plant_id), timeout=100).json()
-
-    if 'error' in api_data:
-        print(f"Error: {api_data.get('error')}")
-
-    return api_data
-
-
 def get_plant_data(plant_id: int, session: requests.Session) -> dict:
     """Gets plant data from API using ID."""
 
