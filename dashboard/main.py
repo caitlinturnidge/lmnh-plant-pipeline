@@ -43,7 +43,7 @@ def get_soil_moisture_chart(chart_data: pd.DataFrame) -> alt.Chart:
         # titleFontSize=AXIS_LABEL_FONT_SIZE,
     ).configure_title(
         # fontSize=TITLE_FONT_SIZE,
-    ).interactive()
+    )
 
     return chart
 
@@ -152,3 +152,14 @@ if __name__ == "__main__":
     }
     st.sidebar.image(image_dict.get(selected_plant),
                      caption=f'Plant {selected_plant}')
+
+    locs = pd.read_csv('../origin_data_STATIC.csv')
+
+    st.divider()
+
+    st.header('🌍 Origin Location')
+    st.map(locs.iloc[selected_plant:selected_plant+1],
+           latitude='lat',
+           longitude='lon',
+           size=1000,
+           zoom=4)
