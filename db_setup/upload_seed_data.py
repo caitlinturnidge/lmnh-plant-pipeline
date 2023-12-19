@@ -50,9 +50,11 @@ def upload_plants(conn: Connection, plants: list) -> None:
         conn.execute(sql.text("BEGIN TRANSACTION;"))
 
         for row in plants:
+            if row["origin_location"]:
+                row["origin_location"] = int(float(row["origin_location"]))
             query = sql.text(
                 f"""INSERT INTO {environ['DB_SCHEMA']}.plant (name, scientific_name, location_id) 
-                    VALUES (:name, :scientific_name, :id);""")
+                    VALUES (:name, :scientific_name, :origin_location);""")
             conn.execute(query, row)
 
         conn.execute(sql.text("COMMIT;"))
@@ -77,8 +79,6 @@ if __name__ == "__main__":
 
     conn = engine.connect()
 
-    conn.commit()
-
     upload_plants(conn, plants)
 
-    # upload_locations(conn, locations)
+    
