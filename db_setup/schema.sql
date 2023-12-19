@@ -5,7 +5,7 @@ DROP TABLE if exists s_beta.watering, s_beta.duty, s_beta.recording, s_beta.bota
 GO
 
 CREATE TABLE s_beta.recording (
-    "id" BIGINT NOT NULL,
+    "id" INT IDENTITY(1,1),
     "plant_id" BIGINT NOT NULL,
     "soil_moisture" FLOAT NOT NULL,
     "temperature" FLOAT NOT NULL,
@@ -18,7 +18,7 @@ ALTER TABLE
 GO
 
 CREATE TABLE s_beta.plant(
-    "id" BIGINT NOT NULL,
+    "id" INT IDENTITY(0,1),
     "name" VARCHAR(255) NOT NULL,
     "scientific_name" VARCHAR(255) NOT NULL,
     "location_id" BIGINT NOT NULL
@@ -30,7 +30,7 @@ ALTER TABLE
 GO
 
 CREATE TABLE s_beta.watering(
-    "id" BIGINT NOT NULL,
+    "id" INT IDENTITY(1,1),
     "plant_id" BIGINT NOT NULL,
     "datetime" TIMESTAMP NOT NULL
 );
@@ -42,7 +42,7 @@ GO
 
 
 CREATE TABLE s_beta.botanist(
-    "id" BIGINT NOT NULL,
+    "id" INT IDENTITY(1,1),
     "email" VARCHAR(255) NOT NULL,
     "firstname" VARCHAR(255) NOT NULL,
     "lastname" VARCHAR(255) NOT NULL,
@@ -56,7 +56,7 @@ GO
 
 
 CREATE TABLE s_beta.location(
-    "id" BIGINT NOT NULL,
+    "id" INT IDENTITY(1,1),
     "latitute" FLOAT NOT NULL,
     "longitude" FLOAT NOT NULL,
     "town" VARCHAR(255) NOT NULL,
@@ -71,7 +71,7 @@ ALTER TABLE
 GO
 
 CREATE TABLE s_beta.duty(
-    "id" BIGINT NOT NULL,
+    "id" INT IDENTITY(1,1),
     "botanist_id" BIGINT NOT NULL,
     "plant_id" BIGINT NOT NULL
 );
