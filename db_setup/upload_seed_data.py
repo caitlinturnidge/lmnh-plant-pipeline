@@ -52,8 +52,6 @@ def upload_plants(conn: Connection, plants: list) -> None:
         for row in plants:
             if row["origin_location"]:
                 row["origin_location"] = int(float(row["origin_location"]))
-            if not row["origin_location"]:
-                row["origin_location"] = 1
             query = sql.text(
                 f"""INSERT INTO {environ['DB_SCHEMA']}.plant (name, scientific_name, location_id) 
                     VALUES (:name, :scientific_name, :origin_location);""")
@@ -89,11 +87,10 @@ def upload_duties(conn: Connection, duties: list) -> None:
 
 if __name__ == "__main__":
 
-    
     with open('seed_locations.csv', 'r', encoding="utf-8") as csv_file:
         locations = list(csv.DictReader(csv_file))
 
-    with open('seed_plants.csv', 'r', encoding="utf-8") as csv_file:
+    with open('sample_plants.csv', 'r', encoding="utf-8") as csv_file:
         plants = list(csv.DictReader(csv_file))
 
     with open('seed_duties.csv', 'r', encoding="utf-8") as csv_file:
@@ -103,10 +100,8 @@ if __name__ == "__main__":
 
     conn = engine.connect()
 
-    upload_locations(conn, locations)
+    # upload_locations(conn, locations)
 
     upload_plants(conn, plants)
 
-    upload_duties(conn, duties)
-
-    
+    # upload_duties(conn, duties)

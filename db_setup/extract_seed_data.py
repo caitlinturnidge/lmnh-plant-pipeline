@@ -41,8 +41,8 @@ def parse_location(location_info: list) -> dict:
 def generate_location_id(locations: list[dict]) -> int:
     """Finds the highest ID number and returns the following number in the sequence."""
     if not locations:
-        return 1
-    return max([loc["id"] for loc in locations]) + 1
+        return None
+    return int(max([loc["id"] for loc in locations]) + 1)
 
 
 def cross_reference_location(location_info: list[str], unique_locations: list[dict]) -> int:
@@ -61,7 +61,7 @@ def cross_reference_location(location_info: list[str], unique_locations: list[di
         if location["latitude"] == current_lat and location["longitude"] == current_long:
             return location["id"]
 
-    current_location["id"] = int(generate_location_id(unique_locations))
+    current_location["id"] = generate_location_id(unique_locations)
     unique_locations.append(current_location)
     return current_location["id"]
 
