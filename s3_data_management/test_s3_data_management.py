@@ -1,8 +1,8 @@
 """Unit tests for s3_data_management.py"""
 from os import environ
-from unittest.mock import MagicMock, patch
+from unittest.mock import MagicMock
 
-from s3_data_management import get_bucket_keys, combine_csv_files_for_month
+from s3_data_management import get_bucket_keys
 
 environ['BUCKET_NAME'] = 'test'
 
