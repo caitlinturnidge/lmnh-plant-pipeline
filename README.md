@@ -2,14 +2,12 @@
 ### Overview
 This script is designed to extract and clean data from the Liverpool Natural History Museum's plant API. The extracted data includes information about plant recordings, watering details, botanists, and plant names. The script then processes and organizes this data into separate DataFrames, and saves them as CSV files for further analysis.
 
-### Dependencies
-requests
-pandas
-
-
 Usage
 To use the script, ensure you have the required dependencies installed:
 
+### Dependencies
+requests
+pandas
 
 
 Run the script:
@@ -52,6 +50,40 @@ botanist_data_SAMPLE.csv
 Notes
 The script iterates over 50 plant IDs and fetches data for each plant.
 Duplicate and None values are appropriately handled.
+
+## Load Script
+
+### Overview
+This script gets the cleaned data in the csvs, created from the extract script and adds them to the short term database.
+
+Usage
+To use the script, ensure you have the required dependencies installed:
+
+### Dependencies
+sqlalchemy
+python-dotenv
+pytest
+
+### Add environment variables to .env
+- DB_HOST
+- DB_PORT
+- DB_USER
+- DB_PASSWORD
+- DB_NAME
+- DB_SCHEMA
+
+Run the script:
+
+```python3 load.py
+```
+
+Functions:
+- get_database_connection - Gets the connection to the database
+- get_recordings_csv - Gets the recordings data from the csv and returns it
+- get_waterings_csv - Gets the waterings data from the csv and returns it
+- upload_recordings - uploads the recordings data to the database
+- upload_waterings - uploads the waterings data to the database
+
 
 ## s3_data_management
 Contains files for management of data in s3 bucket; to be run daily *after* midnight, to combine the csv from the day before into the monthly csv. Assumes an s3 file structure as follows:

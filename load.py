@@ -21,13 +21,13 @@ def get_database_connection():
 
 def get_recordings_csv() -> list:
     """Gets the cleaned recordings csv and returns it."""
-    with open('sample.csv', 'r', encoding="utf-8") as csv_file:
+    with open('recording_data_SAMPLE.csv', 'r', encoding="utf-8") as csv_file:
         return list(csv.DictReader(csv_file))
 
 
 def get_waterings_csv() -> list:
     """Gets the cleaned waterings csv and returns it."""
-    with open('sample.csv', 'r', encoding="utf-8") as csv_file:
+    with open('watering_data_SAMPLE.csv', 'r', encoding="utf-8") as csv_file:
         return list(csv.DictReader(csv_file))
 
 
