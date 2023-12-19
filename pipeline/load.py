@@ -10,7 +10,7 @@ def get_database_connection():
     """Returns the connection to the database."""
     try:
         engine = create_engine(
-            f"mssql+pymssql://{environ['DB_USER']}:{environ['DB_PASSWORD']}@{environ['DB_HOST']}/?charset=utf8"
+            f"mssql+pymssql://{environ['DB_USER']}:{environ['DB_PASSWORD']}@{environ['DB_HOST']}:{environ['DB_PORT']}/{environ['DB_NAME']}?charset=utf8"
         )
         connection = engine.connect()
         return connection
@@ -21,13 +21,13 @@ def get_database_connection():
 
 def get_recordings_csv() -> list:
     """Gets the cleaned recordings csv and returns it."""
-    with open('sample.csv', 'r', encoding="utf-8") as csv_file:
+    with open('recording_data_SAMPLE.csv', 'r', encoding="utf-8") as csv_file:
         return list(csv.DictReader(csv_file))
 
 
 def get_waterings_csv() -> list:
     """Gets the cleaned waterings csv and returns it."""
-    with open('sample.csv', 'r', encoding="utf-8") as csv_file:
+    with open('watering_data_SAMPLE.csv', 'r', encoding="utf-8") as csv_file:
         return list(csv.DictReader(csv_file))
 
 
@@ -37,7 +37,6 @@ def upload_recordings(conn) -> None:
 
     try:
         conn.execute(sql.text("BEGIN TRANSACTION;"))
-        conn.execute(sql.text(f"USE {environ['DB_NAME']};"))
 
         for row in data:
             query = sql.text(
@@ -57,7 +56,6 @@ def upload_waterings(conn) -> None:
 
     try:
         conn.execute(sql.text("BEGIN TRANSACTION;"))
-        conn.execute(sql.text(f"USE {environ['DB_NAME']};"))
 
         for row in data:
             query = sql.text(
