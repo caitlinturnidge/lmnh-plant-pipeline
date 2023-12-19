@@ -44,7 +44,7 @@ def upload_locations(conn: Connection, locations: list) -> None:
 
 
 def upload_plants(conn: Connection, plants: list) -> None:
-    """Seeds database with location data."""
+    """Seeds database with plant data."""
     try:
         conn.execute(sql.text(f"USE {environ['DB_NAME']};"))
         conn.execute(sql.text("BEGIN TRANSACTION;"))
@@ -67,6 +67,25 @@ def upload_plants(conn: Connection, plants: list) -> None:
         raise e
 
 
+def upload_duties(conn: Connection, duties: list) -> None:
+    """Seeds database with information about each botanists responsibility."""
+    try:
+        conn.execute(sql.text(f"USE {environ['DB_NAME']};"))
+        conn.execute(sql.text("BEGIN TRANSACTION;"))
+
+        for row in duties:
+            query = sql.text(
+                f"""INSERT INTO {environ['DB_SCHEMA']}.duty (plant_id, botanist_id) 
+                    VALUES (:plant_id, :botanist_id);""")
+            conn.execute(query, row)
+
+        conn.execute(sql.text("COMMIT;"))
+        conn.commit()
+
+    except Exception as e:
+        conn.execute(sql.text("ROLLBACK;"))
+        raise e
+
 
 if __name__ == "__main__":
 
@@ -77,6 +96,9 @@ if __name__ == "__main__":
     with open('seed_plants.csv', 'r', encoding="utf-8") as csv_file:
         plants = list(csv.DictReader(csv_file))
 
+    with open('seed_duties.csv', 'r', encoding="utf-8") as csv_file:
+        duties = list(csv.DictReader(csv_file))
+
     engine = create_engine("mssql+pymssql://beta:beta1@c9-plants-db.c57vkec7dkkx.eu-west-2.rds.amazonaws.com:1433/plants")
 
     conn = engine.connect()
@@ -84,5 +106,7 @@ if __name__ == "__main__":
     upload_locations(conn, locations)
 
     upload_plants(conn, plants)
+
+    upload_duties(conn, duties)
 
     
