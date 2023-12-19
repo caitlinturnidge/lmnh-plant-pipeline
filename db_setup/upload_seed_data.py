@@ -52,6 +52,8 @@ def upload_plants(conn: Connection, plants: list) -> None:
         for row in plants:
             if row["origin_location"]:
                 row["origin_location"] = int(float(row["origin_location"]))
+            if not row["origin_location"]:
+                row["origin_location"] = 1
             query = sql.text(
                 f"""INSERT INTO {environ['DB_SCHEMA']}.plant (name, scientific_name, location_id) 
                     VALUES (:name, :scientific_name, :origin_location);""")
@@ -78,6 +80,8 @@ if __name__ == "__main__":
     engine = create_engine("mssql+pymssql://beta:beta1@c9-plants-db.c57vkec7dkkx.eu-west-2.rds.amazonaws.com:1433/plants")
 
     conn = engine.connect()
+
+    # upload_locations(conn, locations)
 
     upload_plants(conn, plants)
 
