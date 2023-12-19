@@ -53,7 +53,9 @@ Notes
 The script iterates over 50 plant IDs and fetches data for each plant.
 Duplicate and None values are appropriately handled.
 
-## s3_data_management
+
+
+## s3_data_management/
 Contains files for management of data in s3 bucket; to be run daily *after* midnight, to combine the csv from the day before into the monthly csv. Assumes an s3 file structure as follows:
 - `{year}`
     - `{month}`
@@ -107,3 +109,9 @@ At the end of each month, the month folder will contain only two csv files, `wat
 ## rds_to_s3.py
 Contains code to retrieve watering/recording data older than 24hrs from the database, append it to
 the relevant files in s3 (automatically creates if none exist), and delete from the db.
+
+Entire functionality is run by calling function `update_rds_and_s3()`, with no arguments, which is called automatically when the function is run from the commandline.
+
+### Requirements to run
+- Written to use a .env file with AWS_SECRET_ACCESS_KEY, AWS_ACCESS_KEY_ID, BUCKET_NAME, DB_HOST, BB_PORT, DB_NAME, DB_SCHEMA, DB_USER, DB_PASSWORD
+- Library requirements in file `requirements.txt` in parent directory
