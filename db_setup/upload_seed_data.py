@@ -4,6 +4,7 @@ from os import environ
 
 from dotenv import load_dotenv
 from sqlalchemy import create_engine, sql
+from sqlalchemy.engine.base import Connection
 
 
 load_dotenv()
@@ -22,22 +23,45 @@ def get_database_connection():
         raise e
 
 
-def upload_locations(conn, locations: list) -> None:
+def upload_locations(conn: Connection, locations: list) -> None:
     """Seeds database with location data."""
     try:
-        conn.execute(sql.text("BEGIN TRANSACTION;"))
         conn.execute(sql.text(f"USE {environ['DB_NAME']};"))
+        conn.execute(sql.text("BEGIN TRANSACTION;"))
 
         for row in locations:
             query = sql.text(
                 f"""INSERT INTO {environ['DB_SCHEMA']}.location (latitude, longitude, town, country_code, city, continent) 
-                    VALUES (:latitude, :longitude, :town, :country_code, :city, :continent)""")
+                    VALUES (:latitude, :longitude, :town, :country_code, :city, :continent);""")
             conn.execute(query, row)
 
         conn.execute(sql.text("COMMIT;"))
+        conn.commit()
+
     except Exception as e:
         conn.execute(sql.text("ROLLBACK;"))
         raise e
+
+
+def upload_plants(conn: Connection, plants: list) -> None:
+    """Seeds database with location data."""
+    try:
+        conn.execute(sql.text(f"USE {environ['DB_NAME']};"))
+        conn.execute(sql.text("BEGIN TRANSACTION;"))
+
+        for row in plants:
+            query = sql.text(
+                f"""INSERT INTO {environ['DB_SCHEMA']}.plant (name, scientific_name, location_id) 
+                    VALUES (:name, :scientific_name, :id);""")
+            conn.execute(query, row)
+
+        conn.execute(sql.text("COMMIT;"))
+        conn.commit()
+
+    except Exception as e:
+        conn.execute(sql.text("ROLLBACK;"))
+        raise e
+
 
 
 if __name__ == "__main__":
@@ -53,4 +77,8 @@ if __name__ == "__main__":
 
     conn = engine.connect()
 
-    upload_locations(conn, locations)
+    conn.commit()
+
+    upload_plants(conn, plants)
+
+    # upload_locations(conn, locations)
