@@ -43,10 +43,10 @@ GO
 
 CREATE TABLE s_beta.botanist(
     "id" INT IDENTITY(1,1),
-    "email" VARCHAR(255) NOT NULL,
+    "email" VARCHAR(350) NOT NULL,
     "firstname" VARCHAR(255) NOT NULL,
     "lastname" VARCHAR(255) NOT NULL,
-    "phone" VARCHAR(255) NOT NULL
+    "phone" VARCHAR(30) NOT NULL
 );
 GO
 
@@ -67,10 +67,10 @@ CREATE TABLE s_beta.location(
     "id" INT IDENTITY(1,1),
     "latitude" FLOAT NOT NULL,
     "longitude" FLOAT NOT NULL,
-    "town" VARCHAR(255) NOT NULL,
-    "city" VARCHAR(255) NOT NULL,
+    "town" VARCHAR(100) NOT NULL,
+    "city" VARCHAR(100) NOT NULL,
     "country_code" NCHAR(2) NOT NULL,
-    "continent" VARCHAR(255) NOT NULL
+    "continent" VARCHAR(50) NOT NULL
 );
 GO
 
