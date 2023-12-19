@@ -126,16 +126,18 @@ if __name__ == "__main__":
     cleaned_origin_data_list = [
         origin for origin in origin_data_list if origin]
 
-    recording_df = pd.DataFrame(recording_data_list)
-    watering_df = pd.DataFrame(watering_data_list)
+    recording_df = pd.DataFrame(recording_data_list).dropna()
+    watering_df = pd.DataFrame(watering_data_list).dropna()
     botanist_df = pd.DataFrame(cleaned_botanist_data_list)
     plant_df = pd.DataFrame(plant_data_list)
     origin_df = pd.DataFrame(cleaned_origin_data_list)
 
     recording_df['recording_taken'] = pd.to_datetime(
         recording_df['recording_taken'])
+    recording_df = recording_df.rename(columns={'recording_taken': 'datetime'})
     watering_df['last_watered'] = pd.to_datetime(
         watering_df['last_watered'])
+    watering_df = watering_df.rename(columns={'last_watered': 'datetime'})
 
     recording_df.to_csv('recording_data_SAMPLE.csv', index=False)
     watering_df.to_csv('watering_data_SAMPLE.csv', index=False)
