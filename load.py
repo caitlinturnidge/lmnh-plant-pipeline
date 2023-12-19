@@ -10,7 +10,7 @@ def get_database_connection():
     """Returns the connection to the database."""
     try:
         engine = create_engine(
-            f"mssql+pymssql://{environ['DB_USER']}:{environ['DB_PASSWORD']}@{environ['DB_HOST']}/?charset=utf8"
+            f"mssql+pymssql://{environ['DB_USER']}:{environ['DB_PASSWORD']}@{environ['DB_HOST']}:{environ['DB_PORT']}/{environ['DB_NAME']}?charset=utf8"
         )
         connection = engine.connect()
         return connection
@@ -37,7 +37,6 @@ def upload_recordings(conn) -> None:
 
     try:
         conn.execute(sql.text("BEGIN TRANSACTION;"))
-        conn.execute(sql.text(f"USE {environ['DB_NAME']};"))
 
         for row in data:
             query = sql.text(
@@ -57,7 +56,6 @@ def upload_waterings(conn) -> None:
 
     try:
         conn.execute(sql.text("BEGIN TRANSACTION;"))
-        conn.execute(sql.text(f"USE {environ['DB_NAME']};"))
 
         for row in data:
             query = sql.text(
