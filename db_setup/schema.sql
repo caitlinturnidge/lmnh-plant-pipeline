@@ -65,7 +65,7 @@ COMMIT;
 
 CREATE TABLE s_beta.location(
     "id" INT IDENTITY(1,1),
-    "latitute" FLOAT NOT NULL,
+    "latitude" FLOAT NOT NULL,
     "longitude" FLOAT NOT NULL,
     "town" VARCHAR(255) NOT NULL,
     "city" VARCHAR(255) NOT NULL,
