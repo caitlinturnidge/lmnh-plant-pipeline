@@ -6,7 +6,7 @@ GO
 
 CREATE TABLE s_beta.recording (
     "id" INT IDENTITY(1,1),
-    "plant_id" BIGINT NOT NULL,
+    "plant_id" INT NOT NULL,
     "soil_moisture" FLOAT NOT NULL,
     "temperature" FLOAT NOT NULL,
     "datetime" TIMESTAMP NOT NULL
@@ -21,7 +21,7 @@ CREATE TABLE s_beta.plant(
     "id" INT IDENTITY(0,1),
     "name" VARCHAR(255) NOT NULL,
     "scientific_name" VARCHAR(255) NOT NULL,
-    "location_id" BIGINT NOT NULL
+    "location_id" INT NOT NULL
 );
 GO
 
@@ -31,7 +31,7 @@ GO
 
 CREATE TABLE s_beta.watering(
     "id" INT IDENTITY(1,1),
-    "plant_id" BIGINT NOT NULL,
+    "plant_id" INT NOT NULL,
     "datetime" TIMESTAMP NOT NULL
 );
 GO
@@ -54,6 +54,14 @@ ALTER TABLE
     s_beta.botanist ADD CONSTRAINT "botanist_id_primary" PRIMARY KEY("id");
 GO
 
+BEGIN TRANSACTION;
+INSERT INTO s_beta.botanist ("email", "firstname", "lastname", "phone")
+VALUES
+('gertrude.jekyll@lnhm.co.uk','Gertrude','Jekyll','001-481-273-3691x127'),
+('carl.linnaeus@lnhm.co.uk','Carl','Linnaeus','(146)994-1635x35992'),
+('eliza.andrews@lnhm.co.uk','Eliza','Andrews','(846)669-6651x75948')
+;
+COMMIT;
 
 CREATE TABLE s_beta.location(
     "id" INT IDENTITY(1,1),
@@ -72,8 +80,8 @@ GO
 
 CREATE TABLE s_beta.duty(
     "id" INT IDENTITY(1,1),
-    "botanist_id" BIGINT NOT NULL,
-    "plant_id" BIGINT NOT NULL
+    "botanist_id" INT NOT NULL,
+    "plant_id" INT NOT NULL
 );
 GO
 
