@@ -4,6 +4,7 @@ pylint
 # s3_data_management/
 pandas
 requests
+boto3
 
 # Extract.py 
 sqlalchemy
