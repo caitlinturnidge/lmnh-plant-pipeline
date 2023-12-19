@@ -3,13 +3,14 @@ Contains code to retrieve watering/recording data older than 24hrs from the data
 the relevant files in s3 (automatically creates if none exist), and delete from the db.
 """
 
-from os import environ
 from datetime import datetime, timedelta
+from os import environ
 import pandas as pd
+
+from boto3 import client
 from dotenv import load_dotenv
 import sqlalchemy as db
 from sqlalchemy.engine.base import Connection
-from boto3 import client
 
 
 load_dotenv()
@@ -117,7 +118,7 @@ def update_rds_and_s3():
         df = pd.concat([df, get_current_csv_data(data_type, s3_client)])
         upload_to_s3(data_type, df, s3_client)
         delete_oldest_records(data_type, db_engine, db_connection, db_metadata)
-    
+
     db_connection.close()
 
 
