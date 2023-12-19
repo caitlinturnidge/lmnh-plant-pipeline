@@ -3,6 +3,7 @@ pandas
 pytest
 pylint
 requests
+boto3
 
 # Extract.py
 sqlalchemy
