@@ -101,3 +101,9 @@ At the end of each month, the month folder will contain only two csv files, `wat
 ### Requirements to run
 - Written to use a .env file with AWS_SECRET_ACCESS_KEY, AWS_ACCESS_KEY_ID, BUCKET_NAME.
 - Library requirements in file `requirements.txt`
+
+
+
+## rds_to_s3.py
+Contains code to retrieve watering/recording data older than 24hrs from the database, append it to
+the relevant files in s3 (automatically creates if none exist), and delete from the db.
