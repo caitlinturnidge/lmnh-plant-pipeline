@@ -1,0 +1,8 @@
+pandas
+altair
+sqlalchemy
+streamlit
+pytest
+pylint
+ipykernel
+python-dotenv
