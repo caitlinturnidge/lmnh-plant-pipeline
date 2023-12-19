@@ -20,7 +20,7 @@ def test_upload_recordings_correct_calls(mock_get_recordings_csv):
     conn = MagicMock()
     mock_execute = conn.execute
     upload_recordings(conn)
-    assert mock_execute.call_count == 5
+    assert mock_execute.call_count == 4
 
 
 @patch("load.get_waterings_csv")
@@ -31,5 +31,5 @@ def test_upload_waterings_correct_calls_empty_data(mock_get_waterings_csv):
     mock_execute = conn.execute
     mock_commit = conn.commit
     upload_waterings(conn)
-    assert mock_execute.call_count == 3
+    assert mock_execute.call_count == 2
     assert mock_commit.call_count == 0
