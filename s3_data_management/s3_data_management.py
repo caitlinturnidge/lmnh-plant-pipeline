@@ -37,7 +37,8 @@ def save_df_to_s3_bucket(s3_client: client, df: pd.DataFrame, key: str, bucket: 
 
 
 def combine_csv_files_for_month(s3_client: client, bucket_name: str):
-    """Downloads relevant files from S3 to local, and then converts into two pandas dataframes."""
+    """Downloads relevant files from S3 to local, converts into two pandas data frames and saves them, 
+           old csv files that have been combined are deleted."""
     folder_path = f'{YESTERDAY.year}/{YESTERDAY.month}'
     keys = get_bucket_keys(s3_client, folder_path, bucket_name)
     for data_type in ['watering', 'recording']:
