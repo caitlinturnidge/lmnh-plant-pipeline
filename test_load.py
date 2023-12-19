@@ -2,8 +2,6 @@
 from os import environ
 from unittest.mock import MagicMock, patch
 
-import pytest
-
 from load import upload_recordings, upload_waterings
 
 environ['DB_NAME'] = 'test'
