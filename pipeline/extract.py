@@ -122,11 +122,11 @@ def extract():
         watering_df['last_watered']).dt.tz_localize(None)
     watering_df = watering_df.rename(columns={'last_watered': 'datetime'})
 
-    recording_df.to_csv('recording_data_SAMPLE.csv', index=False)
-    watering_df.to_csv('watering_data_SAMPLE.csv', index=False)
-    botanist_df.to_csv('botanist_data_STATIC.csv', index=False)
-    plant_df.to_csv('plant_name_data_STATIC.csv', index=False)
-    origin_df.to_csv('origin_data_STATIC.csv', index=False)
+    recording_df.to_csv('/tmp/recording_data_SAMPLE.csv', index=False)
+    watering_df.to_csv('/tmp/watering_data_SAMPLE.csv', index=False)
+    botanist_df.to_csv('/tmp/botanist_data_STATIC.csv', index=False)
+    plant_df.to_csv('/tmp/plant_name_data_STATIC.csv', index=False)
+    origin_df.to_csv('/tmp/origin_data_STATIC.csv', index=False)
 
 
 if __name__ == "__main__":
