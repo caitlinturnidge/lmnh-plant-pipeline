@@ -8,7 +8,7 @@ NO_OF_PLANTS = 51
 
 
 def set_up_logger():
-    """Set up a logger, to log pipeline progress to the console"""
+    """Set up a logger, to log pipeline progress to the console."""
     logging.basicConfig(level=logging.INFO,
                         format='%(asctime)s - %(levelname)s - %(message)s')
     return logging.getLogger('logger')
