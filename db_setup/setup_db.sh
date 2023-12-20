@@ -4,6 +4,6 @@ source ../.env
 
 sqlcmd -S $DB_HOST,$DB_PORT -U $DB_USER -P $DB_PASSWORD -i schema.sql
 
-python3 db_setup/extract_seed_data.py
+python3 extract_seed_data.py
 
-python3 db_setup/upload_seed_data.py
+python3 upload_seed_data.py
