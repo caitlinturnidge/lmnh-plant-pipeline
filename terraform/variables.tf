@@ -1,35 +1,9 @@
-
-variable "DB_NAME" {
-    description = "Database name variable"
-    type        = string
-}
-
-variable "DB_PASSWORD" {
-    description = "Database password variable"
-    type        = string
-}
-
-variable "DB_USER" {
-    description = "Database username variable"
-    type        = string
-}
-
-variable "DB_HOST" {
-    description = "Database host variable"
-    type        = string
-}
-
-variable "DB_PORT" {
-    description = "Database port variable"
-    type        = string
-}
-
-variable "AWS_ACCESS_KEY_ID" {
+variable "AWS_ACCESS_KEY_ID_" {
     description = "AWS access key ID"
     type        = string
 }
 
-variable "AWS_SECRET_ACCESS_KEY" {
+variable "AWS_SECRET_ACCESS_KEY_" {
     description = "AWS secret access key"
     type        = string
 }
