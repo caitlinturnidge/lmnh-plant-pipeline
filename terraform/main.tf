@@ -26,7 +26,7 @@ resource "aws_iam_role" "lambda-role" {
 
 # Create Lambda function
 
-resource "aws_lambda_function" "report_lambda" {
+resource "aws_lambda_function" "data_management_lambda" {
     function_name                  = "c9-butterflies-data-management-terraform"
     role                           = aws_iam_role.lambda-role.arn 
     image_uri = "129033205317.dkr.ecr.eu-west-2.amazonaws.com/c9-butterflies-data-management:latest"
@@ -43,5 +43,35 @@ resource "aws_lambda_function" "report_lambda" {
   }
 
 
+# Create a role for the Eventbridge scheduler
 
-# Create Eventbridge schedular
+resource "aws_iam_role" "scheduler" {
+  name = "cron-scheduler-role"
+  assume_role_policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [
+      {
+        Effect = "Allow"
+        Principal = {
+          Service = ["scheduler.amazonaws.com"]
+        }
+        Action = "sts:AssumeRole"
+      }
+    ]
+  })
+}
+
+
+# Create the Eventbridge scheduler
+
+resource "aws_scheduler_schedule" "data_management_event" {
+  name                = "c9-butterflies-data-management-schedule-terraform"
+  flexible_time_window {
+    mode = "OFF"
+  }
+  schedule_expression = "cron(15 0 * * ? *)"  
+  target {
+    arn  = aws_lambda_function.data_management_lambda.arn
+    role_arn = aws_iam_role.scheduler.arn 
+        }
+}
