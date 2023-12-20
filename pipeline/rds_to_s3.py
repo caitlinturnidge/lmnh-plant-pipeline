@@ -14,7 +14,7 @@ from sqlalchemy.engine.base import Connection
 
 
 load_dotenv()
-STR_DAY_AGO = (datetime.now() - timedelta(hours=24)).strftime("%Y-%m-%d %H:%M:%S")
+LITERAL_DAY_AGO = (datetime.now() - timedelta(hours = 24))
 TODAY = datetime.today()
 
 
@@ -31,16 +31,17 @@ def get_database_engine():
 
 
 def get_old_records(table_name: str, db_engine: db.Engine, connection: Connection, metadata,
-                    date_cutoff: str = STR_DAY_AGO):
+                    datetime_cutoff: str = LITERAL_DAY_AGO):
     """
     Retrieves records older than 24 hours (by attribute 'datetime') from db table with given name
     (watering/recording).
     """
     try:
         table = db.Table(table_name, metadata, autoload_with=db_engine)
-        query = db.select(table).where(table.columns.datetime < str.encode(date_cutoff))
+        query = db.select(table).where(table.columns.datetime < datetime_cutoff)
         response = connection.execute(query)
-        return pd.DataFrame(response.fetchall())
+        results = response.fetchall()
+        return pd.DataFrame(results)
 
     except Exception as e:
         raise e
@@ -54,7 +55,7 @@ def get_day_bucket_keys(s3_client: client, folder_path: str, day: int = TODAY.da
     """
     objects = s3_client.list_objects(Bucket=bucket_name, Prefix=folder_path).get('Contents')
     if objects:
-        return [obj['Key'] for obj in objects if obj['Key'].split('_')[-1] == f'{day}.csv']
+        return [obj['Key'] for obj in objects if f'{day}.csv' in obj['Key']]
     return []
 
 
@@ -71,20 +72,25 @@ def get_current_csv_data(data_type: str, s3_client: client, bucket_name:
     if type_keys:
         type_key = type_keys[0]
         response = s3_client.get_object(Bucket=bucket_name, Key = type_key)
-        return pd.read_csv(response.get("Body"))
+        try:
+            return pd.read_csv(response.get("Body"))
+        except pd.errors.EmptyDataError:
+            # Prevents code crashing if a csv exists in s3 but is empty
+            pass
+
     return pd.DataFrame()
 
 
 def upload_to_s3(data_type: str, df: pd.DataFrame, s3_client,
                  bucket_name: str = environ['BUCKET_NAME'], date: str = TODAY):
     """Uploads pandas dataframe of data_type to appropriate csv in s3 bucket."""
-    s3_client.put_object(Body = df.to_csv(), Bucket = bucket_name,
+    s3_client.put_object(Body = df.to_csv(index=False), Bucket = bucket_name,
                          Key = f'{date.year}/{date.month}/{data_type}_{date.day}.csv')
 
 
 
 def delete_oldest_records(table_name: str, db_engine: db.Engine, connection: Connection, metadata,
-                          date_cutoff: str = STR_DAY_AGO):
+                          datetime_cutoff: str = LITERAL_DAY_AGO):
     """
     Deletes records older than 24 hours (by attribute 'datetime') from db table with given name
     (watering/recording).
@@ -92,7 +98,7 @@ def delete_oldest_records(table_name: str, db_engine: db.Engine, connection: Con
     try:
         table = db.Table(table_name, metadata, autoload=True,
                          autoload_with=db_engine)
-        query = db.delete(table).where(table.columns.datetime < str.encode(date_cutoff))
+        query = db.delete(table).where(table.columns.datetime < datetime_cutoff)
         connection.execute(query)
         connection.commit()
     except Exception as e:
@@ -115,7 +121,7 @@ def update_rds_and_s3():
 
     for data_type in ['recording', 'watering']:
         df = get_old_records(data_type, db_engine, db_connection, db_metadata)
-        df = pd.concat([df, get_current_csv_data(data_type, s3_client)])
+        df = pd.concat([get_current_csv_data(data_type, s3_client), df])
         upload_to_s3(data_type, df, s3_client)
         delete_oldest_records(data_type, db_engine, db_connection, db_metadata)
 
