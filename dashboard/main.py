@@ -171,9 +171,9 @@ def main():
 
     db_data = get_24hr_data('recording', db_engine, db_connection, db_metadata)
 
-    # db_data = pd.read_csv('mock_data_multi_plants.csv')
-    # db_data = db_data.rename(columns={'recording_taken': 'datetime'})
-    # db_data['datetime'] = pd.to_datetime(db_data['datetime'])
+    db_data = pd.read_csv('mock_data_multi_plants.csv')
+    db_data = db_data.rename(columns={'recording_taken': 'datetime'})
+    db_data['datetime'] = pd.to_datetime(db_data['datetime'])
 
     st.sidebar.title('Plant Health Tracker')
 
