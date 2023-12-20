@@ -21,19 +21,20 @@ from data_utils import (
     get_origin_locations
 )
 
-RESAMPLE_RATE = '10T'
 LINE_WIDTH = 2
 FIG_WIDTH = 1200
 FIG_HEIGHT = int(FIG_WIDTH / 4)
+TICK_LABEL_FONT_SIZE = 14
+AXIS_LABEL_FONT_SIZE = 16
 
 st.set_page_config(layout="wide")
 
 
-def get_moisture_data(data: pd.DataFrame) -> pd.DataFrame:
+def get_moisture_data(data: pd.DataFrame, sample_rate: str) -> pd.DataFrame:
     """Gets moisture data from filtered dataframe."""
 
     return data.resample(
-        RESAMPLE_RATE, on='datetime').mean().reset_index()
+        sample_rate, on='datetime').mean().reset_index()
 
 
 def get_soil_moisture_chart(chart_data: pd.DataFrame) -> alt.Chart:
@@ -54,20 +55,18 @@ def get_soil_moisture_chart(chart_data: pd.DataFrame) -> alt.Chart:
         width=FIG_WIDTH,
         height=FIG_HEIGHT,
     ).configure_axis(
-        # labelFontSize=TICK_LABEL_FONT_SIZE,
-        # titleFontSize=AXIS_LABEL_FONT_SIZE,
-    ).configure_title(
-        # fontSize=TITLE_FONT_SIZE,
-    )
+        labelFontSize=TICK_LABEL_FONT_SIZE,
+        titleFontSize=AXIS_LABEL_FONT_SIZE,
+    ).interactive()
 
     return chart
 
 
-def get_temperature_data(data: pd.DataFrame) -> pd.DataFrame:
+def get_temperature_data(data: pd.DataFrame, sample_rate: str) -> pd.DataFrame:
     """Gets moisture data from filtered dataframe."""
 
     return data.resample(
-        RESAMPLE_RATE, on='datetime').mean().reset_index()
+        sample_rate, on='datetime').mean().reset_index()
 
 
 def get_temperature_chart(chart_data: pd.DataFrame) -> alt.Chart:
@@ -88,54 +87,56 @@ def get_temperature_chart(chart_data: pd.DataFrame) -> alt.Chart:
         width=FIG_WIDTH,
         height=FIG_HEIGHT,
     ).configure_axis(
-        # labelFontSize=TICK_LABEL_FONT_SIZE,
-        # titleFontSize=AXIS_LABEL_FONT_SIZE,
-    ).configure_title(
-        # fontSize=TITLE_FONT_SIZE,
+        labelFontSize=TICK_LABEL_FONT_SIZE,
+        titleFontSize=AXIS_LABEL_FONT_SIZE,
     )
 
     return chart
 
 
-if __name__ == "__main__":
+def get_selected_plant(chart_data: pd.DataFrame) -> int:
+    """Builds sidebar selector and gets chosen plant."""
 
-    load_dotenv()
+    return st.sidebar.selectbox('Select Plant', chart_data['plant_id'].unique())
 
-    db_engine = get_database_engine()
-    db_connection = db_engine.connect()
-    db_metadata = db.MetaData(schema=environ['DB_SCHEMA'])
 
-    db_data = get_24hr_data('recording', db_engine, db_connection, db_metadata)
+def get_individual_plant_data(chart_data: pd.DataFrame, plant_selected: int) -> pd.DataFrame:
+    """Uses selected plant ID to get individual plant data."""
 
-    st.sidebar.title('Plant Health Tracker')
+    plant_id = chart_data['plant_id'] == plant_selected
 
-    selected_plant = st.sidebar.selectbox(
-        'Select Plant', db_data['plant_id'].unique())
+    return chart_data[plant_id]
 
-    plant_id = db_data['plant_id'] == selected_plant
-    data = db_data[plant_id]
+
+def build_resample_rate_slider() -> str:
+    """Builds sidebar resample rate slider, returns chosen resample rate."""
 
     resample_rate = st.sidebar.slider(
         'Select sample rate (minutes)',
         min_value=1, max_value=60, value=10, step=1)
 
-    RESAMPLE_RATE = f'{resample_rate}T'
+    return f'{resample_rate}T'
 
-    latest_data = data.iloc[-1]
 
-    moisture_data = get_moisture_data(data)
+def build_moisture_header_and_metric(chart_data: pd.DataFrame) -> None:
+    """Builds soil moisture header and metric."""
 
+    latest_data = chart_data.iloc[-1]
     st.header('🚿 Soil Moisture')
-    st.metric('Current Soil Moisture', f"{latest_data['soil_moisture']:.2f}%")
-    st.altair_chart(get_soil_moisture_chart(moisture_data))
+    st.metric('Current Soil Moisture',
+              f"{latest_data['soil_moisture']:.1f}%", delta='4')
 
-    st.divider()
 
-    temperature_data = get_temperature_data(data)
+def build_temperature_header_and_metric(chart_data: pd.DataFrame) -> None:
+    """Builds temperature header and metric."""
 
+    latest_data = chart_data.iloc[-1]
     st.header('🌡️ Temperature')
     st.metric('Current Temperature', f"{latest_data['temperature']:.1f}°C")
-    st.altair_chart(get_temperature_chart(temperature_data))
+
+
+def display_sidebar_image(selected_plant: int) -> None:
+    """Gets plant images and displays in sidebar if available."""
 
     image_dict = get_plant_images()
 
@@ -145,9 +146,11 @@ if __name__ == "__main__":
     else:
         st.sidebar.text('No image available')
 
-    locs = get_origin_locations()
 
-    st.divider()
+def display_sidebar_map(selected_plant: int) -> None:
+    """Gets locations and displays map if available."""
+
+    locs = get_origin_locations()
 
     st.sidebar.header('🌍 Location of Origin')
     st.sidebar.map(locs.iloc[selected_plant:selected_plant+1],
@@ -155,3 +158,50 @@ if __name__ == "__main__":
                    longitude='lon',
                    size=1000,
                    zoom=4)
+
+
+def main():
+    """Main logic to run dashboard."""
+
+    load_dotenv()
+
+    # db_engine = get_database_engine()
+    # db_connection = db_engine.connect()
+    # db_metadata = db.MetaData(schema=environ['DB_SCHEMA'])
+
+    # db_data = get_24hr_data('recording', db_engine, db_connection, db_metadata)
+
+    db_data = pd.read_csv('mock_data_multi_plants.csv')
+    db_data = db_data.rename(columns={'recording_taken': 'datetime'})
+    db_data['datetime'] = pd.to_datetime(db_data['datetime'])
+
+    st.sidebar.title('Plant Health Tracker')
+
+    selected_plant = get_selected_plant(db_data)
+    data = get_individual_plant_data(db_data, selected_plant)
+
+    resample_rate = build_resample_rate_slider()
+
+    build_moisture_header_and_metric(data)
+    moisture_data = get_moisture_data(data, resample_rate)
+    st.altair_chart(get_soil_moisture_chart(moisture_data))
+
+    st.divider()
+
+    build_temperature_header_and_metric(data)
+    temperature_data = get_temperature_data(data, resample_rate)
+    st.altair_chart(get_temperature_chart(temperature_data))
+
+    display_sidebar_image(selected_plant)
+
+    st.divider()
+
+    display_sidebar_map(selected_plant)
+
+    #  Placeholder
+    with st.expander('Open to see more'):
+        st.write('This is more content.')
+
+
+if __name__ == "__main__":
+    main()
