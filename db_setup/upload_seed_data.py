@@ -1,11 +1,13 @@
 """This script seeds the database plant, location and duty tables with .csv files."""
 
 
-import csv
 from os import environ
 
 from dotenv import load_dotenv
-from sqlalchemy import create_engine, sql
+
+import numpy as np
+import pandas as pd
+import sqlalchemy as db
 from sqlalchemy.engine.base import Connection
 
 
@@ -15,7 +17,7 @@ load_dotenv()
 def get_database_engine():
     """Returns the database engine."""
     try:
-        engine = create_engine(
+        engine = db.create_engine(
             f"mssql+pymssql://{environ['DB_USER']}:{environ['DB_PASSWORD']}@{environ['DB_HOST']}:{environ['DB_PORT']}/{environ['DB_NAME']}?charset=utf8"
         )
         return engine
@@ -24,87 +26,63 @@ def get_database_engine():
         raise e
 
 
-def upload_locations(conn: Connection, locations: list) -> None:
+def upload_locations(locations: list, engine: db.Engine, conn: Connection, metadata) -> None:
     """Seeds database with location data."""
+    location_table = db.Table('location', metadata, autoload_with=engine)
+
     try:
-        conn.execute(sql.text(f"USE {environ['DB_NAME']};"))
-        conn.execute(sql.text("BEGIN TRANSACTION;"))
-
-        for row in locations:
-            query = sql.text(
-                f"""INSERT INTO {environ['DB_SCHEMA']}.location (latitude, longitude, town, country_code, city, continent)
-                    VALUES (:latitude, :longitude, :town, :country_code, :city, :continent);""")
-            conn.execute(query, row)
-
-        conn.execute(sql.text("COMMIT;"))
+        conn.execute(location_table.insert(), locations)
         conn.commit()
-
     except Exception as e:
-        conn.execute(sql.text("ROLLBACK;"))
+        conn.rollback()
         raise e
 
 
-def upload_plants(conn: Connection, plants: list) -> None:
+def upload_plants(plants: list, engine: db.Engine, conn: Connection, metadata) -> None:
     """Seeds database with plant data."""
+    plant_table = db.Table('plant', metadata, autoload_with=engine)
+
     try:
-        conn.execute(sql.text(f"USE {environ['DB_NAME']};"))
-        conn.execute(sql.text("BEGIN TRANSACTION;"))
-
-        for row in plants:
-            if row["origin_location"]:
-                row["origin_location"] = int(float(row["origin_location"]))
-            query = sql.text(
-                f"""INSERT INTO {environ['DB_SCHEMA']}.plant (name, scientific_name, location_id)
-                    VALUES (:name, :scientific_name, :origin_location);""")
-            conn.execute(query, row)
-
-        conn.execute(sql.text("COMMIT;"))
+        conn.execute(plant_table.insert(), plants)
         conn.commit()
-
     except Exception as e:
-        conn.execute(sql.text("ROLLBACK;"))
+        conn.rollback()
         raise e
 
 
-def upload_duties(conn: Connection, duties: list) -> None:
+def upload_duties(duties: list, engine: db.Engine, conn: Connection, metadata) -> None:
     """Seeds database with information about each botanists responsibility."""
+    duty_table = db.Table('duty', metadata, autoload_with=engine)
+
     try:
-        conn.execute(sql.text(f"USE {environ['DB_NAME']};"))
-        conn.execute(sql.text("BEGIN TRANSACTION;"))
-
-        for row in duties:
-            query = sql.text(
-                f"""INSERT INTO {environ['DB_SCHEMA']}.duty (plant_id, botanist_id)
-                    VALUES (:plant_id, :botanist_id);""")
-            conn.execute(query, row)
-
-        conn.execute(sql.text("COMMIT;"))
+        conn.execute(duty_table.insert(), duties)
         conn.commit()
-
     except Exception as e:
-        conn.execute(sql.text("ROLLBACK;"))
+        conn.rollback()
         raise e
 
 
 def upload() -> None:
     """Combines each function to seed the database."""
-    with open('seed_locations.csv', 'r', encoding="utf-8") as csv_file:
-        locations = list(csv.DictReader(csv_file))
 
-    with open('seed_plants.csv', 'r', encoding="utf-8") as csv_file:
-        plants = list(csv.DictReader(csv_file))
+    locations = pd.read_csv('seed_locations.csv').replace(np.nan, None).to_dict('records')
 
-    with open('seed_duties.csv', 'r', encoding="utf-8") as csv_file:
-        duties = list(csv.DictReader(csv_file))
+    plants_df = pd.read_csv('seed_plants.csv')
+    plants_df['origin_location'] = plants_df['origin_location'].fillna(-1).astype(int)
+    plants_df = plants_df.replace({np.nan: None, -1: None})
+    plants = plants_df.to_dict('records')
+
+    duties = pd.read_csv('seed_duties.csv').replace(np.nan, None).to_dict('records')
 
     engine = get_database_engine()
     conn = engine.connect()
+    metadata = db.MetaData(schema=environ['DB_SCHEMA'])
 
-    upload_locations(conn, locations)
+    upload_locations(locations, engine, conn, metadata)
 
-    upload_plants(conn, plants)
+    upload_plants(plants, engine, conn, metadata)
 
-    upload_duties(conn, duties)
+    upload_duties(duties, engine, conn, metadata)
 
 
 if __name__ == "__main__":
