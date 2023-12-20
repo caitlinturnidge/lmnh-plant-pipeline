@@ -165,15 +165,15 @@ def main():
 
     load_dotenv()
 
-    # db_engine = get_database_engine()
-    # db_connection = db_engine.connect()
-    # db_metadata = db.MetaData(schema=environ['DB_SCHEMA'])
+    db_engine = get_database_engine()
+    db_connection = db_engine.connect()
+    db_metadata = db.MetaData(schema=environ['DB_SCHEMA'])
 
-    # db_data = get_24hr_data('recording', db_engine, db_connection, db_metadata)
+    db_data = get_24hr_data('recording', db_engine, db_connection, db_metadata)
 
-    db_data = pd.read_csv('mock_data_multi_plants.csv')
-    db_data = db_data.rename(columns={'recording_taken': 'datetime'})
-    db_data['datetime'] = pd.to_datetime(db_data['datetime'])
+    # db_data = pd.read_csv('mock_data_multi_plants.csv')
+    # db_data = db_data.rename(columns={'recording_taken': 'datetime'})
+    # db_data['datetime'] = pd.to_datetime(db_data['datetime'])
 
     st.sidebar.title('Plant Health Tracker')
 
