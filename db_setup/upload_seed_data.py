@@ -1,0 +1,112 @@
+"""This script seeds the database plant, location and duty tables with .csv files."""
+
+
+import csv
+from os import environ
+
+from dotenv import load_dotenv
+from sqlalchemy import create_engine, sql
+from sqlalchemy.engine.base import Connection
+
+
+load_dotenv()
+
+
+def get_database_engine():
+    """Returns the database engine."""
+    try:
+        engine = create_engine(
+            f"mssql+pymssql://{environ['DB_USER']}:{environ['DB_PASSWORD']}@{environ['DB_HOST']}:{environ['DB_PORT']}/{environ['DB_NAME']}?charset=utf8"
+        )
+        return engine
+    except Exception as e:
+        print(f"Error creating database engine: {e}")
+        raise e
+
+
+def upload_locations(conn: Connection, locations: list) -> None:
+    """Seeds database with location data."""
+    try:
+        conn.execute(sql.text(f"USE {environ['DB_NAME']};"))
+        conn.execute(sql.text("BEGIN TRANSACTION;"))
+
+        for row in locations:
+            query = sql.text(
+                f"""INSERT INTO {environ['DB_SCHEMA']}.location (latitude, longitude, town, country_code, city, continent)
+                    VALUES (:latitude, :longitude, :town, :country_code, :city, :continent);""")
+            conn.execute(query, row)
+
+        conn.execute(sql.text("COMMIT;"))
+        conn.commit()
+
+    except Exception as e:
+        conn.execute(sql.text("ROLLBACK;"))
+        raise e
+
+
+def upload_plants(conn: Connection, plants: list) -> None:
+    """Seeds database with plant data."""
+    try:
+        conn.execute(sql.text(f"USE {environ['DB_NAME']};"))
+        conn.execute(sql.text("BEGIN TRANSACTION;"))
+
+        for row in plants:
+            if row["origin_location"]:
+                row["origin_location"] = int(float(row["origin_location"]))
+            query = sql.text(
+                f"""INSERT INTO {environ['DB_SCHEMA']}.plant (name, scientific_name, location_id)
+                    VALUES (:name, :scientific_name, :origin_location);""")
+            conn.execute(query, row)
+
+        conn.execute(sql.text("COMMIT;"))
+        conn.commit()
+
+    except Exception as e:
+        conn.execute(sql.text("ROLLBACK;"))
+        raise e
+
+
+def upload_duties(conn: Connection, duties: list) -> None:
+    """Seeds database with information about each botanists responsibility."""
+    try:
+        conn.execute(sql.text(f"USE {environ['DB_NAME']};"))
+        conn.execute(sql.text("BEGIN TRANSACTION;"))
+
+        for row in duties:
+            query = sql.text(
+                f"""INSERT INTO {environ['DB_SCHEMA']}.duty (plant_id, botanist_id)
+                    VALUES (:plant_id, :botanist_id);""")
+            conn.execute(query, row)
+
+        conn.execute(sql.text("COMMIT;"))
+        conn.commit()
+
+    except Exception as e:
+        conn.execute(sql.text("ROLLBACK;"))
+        raise e
+
+
+def upload() -> None:
+    """Combines each function to seed the database."""
+    with open('seed_locations.csv', 'r', encoding="utf-8") as csv_file:
+        locations = list(csv.DictReader(csv_file))
+
+    with open('seed_plants.csv', 'r', encoding="utf-8") as csv_file:
+        plants = list(csv.DictReader(csv_file))
+
+    with open('seed_duties.csv', 'r', encoding="utf-8") as csv_file:
+        duties = list(csv.DictReader(csv_file))
+
+    engine = get_database_engine()
+    conn = engine.connect()
+
+    upload_locations(conn, locations)
+
+    upload_plants(conn, plants)
+
+    upload_duties(conn, duties)
+
+
+if __name__ == "__main__":
+
+    upload()
