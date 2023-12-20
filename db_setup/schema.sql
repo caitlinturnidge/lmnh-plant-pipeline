@@ -19,8 +19,8 @@ GO
 
 CREATE TABLE s_beta.plant(
     "id" INT IDENTITY(0,1),
-    "name" VARCHAR(255) NOT NULL,
-    "scientific_name" VARCHAR(255) NOT NULL,
+    "name" VARCHAR(255),
+    "scientific_name" VARCHAR(255),
     "location_id" INT
 );
 GO
