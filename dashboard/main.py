@@ -3,7 +3,13 @@
 import pandas as pd
 import altair as alt
 import streamlit as st
-from datetime import timedelta
+from datetime import timedelta, datetime
+
+from os import environ
+
+from dotenv import load_dotenv
+import sqlalchemy as db
+from sqlalchemy.engine.base import Connection
 
 
 RESAMPLE_RATE = '10T'
@@ -157,9 +163,9 @@ if __name__ == "__main__":
 
     st.divider()
 
-    st.header('🌍 Origin Location')
-    st.map(locs.iloc[selected_plant:selected_plant+1],
-           latitude='lat',
-           longitude='lon',
-           size=1000,
-           zoom=4)
+    st.sidebar.header('🌍 Location of Origin')
+    st.sidebar.map(locs.iloc[selected_plant:selected_plant+1],
+                   latitude='lat',
+                   longitude='lon',
+                   size=1000,
+                   zoom=4)
