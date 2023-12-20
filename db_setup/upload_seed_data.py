@@ -1,3 +1,5 @@
+"""This script seeds the database plant, location and duty tables with .csv files."""
+
 
 import csv
 from os import environ
@@ -10,16 +12,15 @@ from sqlalchemy.engine.base import Connection
 load_dotenv()
 
 
-def get_database_connection():
-    """Returns the connection to the database."""
+def get_database_engine():
+    """Returns the database engine."""
     try:
         engine = create_engine(
-            f"mssql+pymssql://{environ['DB_USER']}:{environ['DB_PASSWORD']}@{environ['DB_HOST']}/?charset=utf8"
+            f"mssql+pymssql://{environ['DB_USER']}:{environ['DB_PASSWORD']}@{environ['DB_HOST']}:{environ['DB_PORT']}/{environ['DB_NAME']}?charset=utf8"
         )
-        connection = engine.connect()
-        return connection
+        return engine
     except Exception as e:
-        print(f"Error creating database connection: {e}")
+        print(f"Error creating database engine: {e}")
         raise e
 
 
@@ -31,7 +32,7 @@ def upload_locations(conn: Connection, locations: list) -> None:
 
         for row in locations:
             query = sql.text(
-                f"""INSERT INTO {environ['DB_SCHEMA']}.location (latitude, longitude, town, country_code, city, continent) 
+                f"""INSERT INTO {environ['DB_SCHEMA']}.location (latitude, longitude, town, country_code, city, continent)
                     VALUES (:latitude, :longitude, :town, :country_code, :city, :continent);""")
             conn.execute(query, row)
 
@@ -53,7 +54,7 @@ def upload_plants(conn: Connection, plants: list) -> None:
             if row["origin_location"]:
                 row["origin_location"] = int(float(row["origin_location"]))
             query = sql.text(
-                f"""INSERT INTO {environ['DB_SCHEMA']}.plant (name, scientific_name, location_id) 
+                f"""INSERT INTO {environ['DB_SCHEMA']}.plant (name, scientific_name, location_id)
                     VALUES (:name, :scientific_name, :origin_location);""")
             conn.execute(query, row)
 
@@ -73,7 +74,7 @@ def upload_duties(conn: Connection, duties: list) -> None:
 
         for row in duties:
             query = sql.text(
-                f"""INSERT INTO {environ['DB_SCHEMA']}.duty (plant_id, botanist_id) 
+                f"""INSERT INTO {environ['DB_SCHEMA']}.duty (plant_id, botanist_id)
                     VALUES (:plant_id, :botanist_id);""")
             conn.execute(query, row)
 
@@ -85,19 +86,18 @@ def upload_duties(conn: Connection, duties: list) -> None:
         raise e
 
 
-if __name__ == "__main__":
-
+def upload() -> None:
+    """Combines each function to seed the database."""
     with open('seed_locations.csv', 'r', encoding="utf-8") as csv_file:
         locations = list(csv.DictReader(csv_file))
 
-    with open('sample_plants.csv', 'r', encoding="utf-8") as csv_file:
+    with open('seed_plants.csv', 'r', encoding="utf-8") as csv_file:
         plants = list(csv.DictReader(csv_file))
 
     with open('seed_duties.csv', 'r', encoding="utf-8") as csv_file:
         duties = list(csv.DictReader(csv_file))
 
-    engine = create_engine("mssql+pymssql://beta:beta1@c9-plants-db.c57vkec7dkkx.eu-west-2.rds.amazonaws.com:1433/plants")
-
+    engine = get_database_engine()
     conn = engine.connect()
 
     upload_locations(conn, locations)
@@ -105,3 +105,8 @@ if __name__ == "__main__":
     upload_plants(conn, plants)
 
     upload_duties(conn, duties)
+
+
+if __name__ == "__main__":
+
+    upload()

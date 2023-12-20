@@ -26,22 +26,20 @@ def get_plant_data(plant_id: int) -> list[dict]:
 def parse_location(location_info: list) -> dict:
     """Turns a list with location info into a dictionary."""
     location = {}
-    if not location_info:
-        return location
-
-    if len(location_info) == LOCATION_LIST_LEN:
-        location["latitude"] = location_info[LAT_INDEX]
-        location["longitude"] = location_info[LONG_INDEX]
-        location["town"] = location_info[TOWN_INDEX]
-        location["country_code"] = location_info[COCO_INDEX]
-        location["continent"], location["city"] = location_info[CONTINENT_CITY_INDEX].split("/")
+    if location_info:
+        if len(location_info) == LOCATION_LIST_LEN:
+            location["latitude"] = location_info[LAT_INDEX]
+            location["longitude"] = location_info[LONG_INDEX]
+            location["town"] = location_info[TOWN_INDEX]
+            location["country_code"] = location_info[COCO_INDEX]
+            location["continent"], location["city"] = location_info[CONTINENT_CITY_INDEX].split("/")
     return location
 
 
 def generate_location_id(locations: list[dict]) -> int:
     """Finds the highest ID number and returns the following number in the sequence."""
     if not locations:
-        return None
+        return 1
     return int(max([loc["id"] for loc in locations]) + 1)
 
 
@@ -92,12 +90,12 @@ def get_duty_information(data: dict) -> dict:
         duty_dict["botanist_id"] = CARL_ID
     if botanist_name == "Eliza Andrews":
         duty_dict["botanist_id"] = ELIZA_ID
-    
+
     return duty_dict
-    
 
-if __name__ == "__main__":
 
+def extract() -> None:
+    """Function produces 3 .csv files with seed information for the database."""
     plant_info = []
     unique_locations = []
     duties = []
@@ -110,7 +108,6 @@ if __name__ == "__main__":
             duties.append(duty_info)
         plant_info.append(details)
 
-
     location_details = pd.DataFrame(unique_locations)
     plant_details = pd.DataFrame(plant_info)
     duty_details = pd.DataFrame(duties)
@@ -118,3 +115,8 @@ if __name__ == "__main__":
     location_details.to_csv("seed_locations.csv", index=False)
     plant_details.to_csv("seed_plants.csv", index=False)
     duty_details.to_csv("seed_duties.csv", index=False)
+
+
+if __name__ == "__main__":
+
+    extract()
