@@ -7,3 +7,7 @@ __pytest_cache__
 .coverage
 .DS_Store
 __pycache__/
+terraform.tfvars
+.terraform.lock.hcl
+terraform.tfstate
+terraform.tfstate.backup
