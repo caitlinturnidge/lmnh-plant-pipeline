@@ -1,14 +1,12 @@
 """This script seeds the database plant, location and duty tables with .csv files."""
 
 
-import csv
 from os import environ
 
 from dotenv import load_dotenv
 
 import numpy as np
 import pandas as pd
-
 import sqlalchemy as db
 from sqlalchemy.engine.base import Connection
 
@@ -73,7 +71,7 @@ def upload() -> None:
     plants_df['origin_location'] = plants_df['origin_location'].fillna(-1).astype(int)
     plants_df = plants_df.replace({np.nan: None, -1: None})
     plants = plants_df.to_dict('records')
-    
+
     duties = pd.read_csv('seed_duties.csv').replace(np.nan, None).to_dict('records')
 
     engine = get_database_engine()
