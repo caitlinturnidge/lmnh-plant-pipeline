@@ -100,8 +100,8 @@ if __name__ == "__main__":
 
     conn = engine.connect()
 
-    # upload_locations(conn, locations)
+    upload_locations(conn, locations)
 
     upload_plants(conn, plants)
 
-    # upload_duties(conn, duties)
+    upload_duties(conn, duties)
