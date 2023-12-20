@@ -82,7 +82,8 @@ CREATE TABLE s_beta.duty(
     "id" INT IDENTITY(1,1),
     "botanist_id" INT NOT NULL,
     "plant_id" INT NOT NULL,
-
+    "start" datetime2 NOT NULL DEFAULT(GETDATE()),
+    "end" datetime2
 );
 GO
 
