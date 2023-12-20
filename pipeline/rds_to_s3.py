@@ -74,8 +74,10 @@ def get_current_csv_data(data_type: str, s3_client: client, bucket_name:
         response = s3_client.get_object(Bucket=bucket_name, Key = type_key)
         try:
             return pd.read_csv(response.get("Body"))
-        except:
+        except pd.errors.EmptyDataError:
+            # Prevents code crashing if a csv exists in s3 but is empty
             pass
+
     return pd.DataFrame()
 
 
