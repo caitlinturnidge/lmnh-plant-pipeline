@@ -13,7 +13,7 @@ from sqlalchemy.engine.base import Connection
 
 
 load_dotenv()
-LITERAL_DAY_AGO = (datetime.now() - timedelta(hours = 24))
+LITERAL_DAY_AGO = (datetime.now() - timedelta(hours=24))
 TODAY = datetime.today()
 
 
@@ -30,29 +30,17 @@ def get_database_engine():
 
 
 def get_24hr_data(table_name: str, db_engine: db.Engine, connection: Connection, metadata,
-                    datetime_cutoff: str = LITERAL_DAY_AGO):
+                  datetime_cutoff: str = LITERAL_DAY_AGO):
     """
-    Retrieves records older than 24 hours (by attribute 'datetime') from db table with given name
-    (watering/recording).
+    Retrieves records from the last 24 hours (by attribute 'datetime') from db table with given name.
     """
     try:
         table = db.Table(table_name, metadata, autoload_with=db_engine)
-        query = db.select(table).where(table.columns.datetime > datetime_cutoff)
+        query = db.select(table).where(
+            table.columns.datetime > datetime_cutoff)
         response = connection.execute(query)
         results = response.fetchall()
         return pd.DataFrame(results)
 
     except Exception as e:
         raise e
-
-
-if __name__ == "__main__":
-
-    db_engine = get_database_engine()
-
-    db_connection = db_engine.connect()
-    db_metadata = db.MetaData(schema=environ['DB_SCHEMA'])
-    
-    for data_type in ['recording', 'watering']:
-        df = get_24hr_data(data_type, db_engine, db_connection, db_metadata)
-        print(df)

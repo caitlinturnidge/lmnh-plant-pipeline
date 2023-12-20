@@ -22,6 +22,7 @@ def get_plant_images():
     return plant_dict
 
 
-def get_origin_locations():
+def get_origin_locations() -> pd.DataFrame:
+    """Returns dataframe of origin locations."""
 
     return pd.read_csv(LOCS_FILE_PATH)
