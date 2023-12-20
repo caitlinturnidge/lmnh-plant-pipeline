@@ -9,7 +9,7 @@ CREATE TABLE s_beta.recording (
     "plant_id" INT NOT NULL,
     "soil_moisture" FLOAT NOT NULL,
     "temperature" FLOAT NOT NULL,
-    "datetime" datetimeoffset NOT NULL
+    "datetime" datetime2 NOT NULL
 );
 GO
 
@@ -19,8 +19,8 @@ GO
 
 CREATE TABLE s_beta.plant(
     "id" INT IDENTITY(0,1),
-    "name" VARCHAR(255) NOT NULL,
-    "scientific_name" VARCHAR(255) NOT NULL,
+    "name" VARCHAR(255),
+    "scientific_name" VARCHAR(255),
     "location_id" INT
 );
 GO
@@ -32,7 +32,7 @@ GO
 CREATE TABLE s_beta.watering(
     "id" INT IDENTITY(1,1),
     "plant_id" INT NOT NULL,
-    "datetime" datetimeoffset NOT NULL
+    "datetime" datetime2 NOT NULL
 );
 GO
 
@@ -81,7 +81,9 @@ GO
 CREATE TABLE s_beta.duty(
     "id" INT IDENTITY(1,1),
     "botanist_id" INT NOT NULL,
-    "plant_id" INT NOT NULL
+    "plant_id" INT NOT NULL,
+    "start" datetime2 NOT NULL DEFAULT(GETDATE()),
+    "end" datetime2
 );
 GO
 
