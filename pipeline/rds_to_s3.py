@@ -116,8 +116,8 @@ def update_rds_and_s3():
     db_metadata = db.MetaData(schema=environ['DB_SCHEMA'])
 
     s3_client = client("s3",
-                       aws_access_key_id=environ['AWS_ACCESS_KEY_ID'],
-                       aws_secret_access_key=environ['AWS_SECRET_ACCESS_KEY'])
+                       aws_access_key_id=environ['AWS_ACCESS_KEY_ID_'],
+                       aws_secret_access_key=environ['AWS_SECRET_ACCESS_KEY_'])
 
     for data_type in ['recording', 'watering']:
         df = get_old_records(data_type, db_engine, db_connection, db_metadata)
