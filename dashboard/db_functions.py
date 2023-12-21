@@ -1,7 +1,6 @@
 """Database functions for dashboard."""
 
 import pandas as pd
-import altair as alt
 import streamlit as st
 from datetime import timedelta, datetime
 
@@ -17,6 +16,7 @@ LITERAL_DAY_AGO = (datetime.now() - timedelta(hours=24))
 TODAY = datetime.today()
 
 
+@st.cache_resource
 def get_database_engine():
     """Returns the database engine."""
     try:
@@ -29,16 +29,17 @@ def get_database_engine():
         raise e
 
 
-def get_24hr_data(table_name: str, db_engine: db.Engine, connection: Connection, metadata,
+@st.cache_data(show_spinner='Plants be loading... 🌱')
+def get_24hr_data(table_name: str, _db_engine: db.Engine, _connection: Connection, _metadata,
                   datetime_cutoff: str = LITERAL_DAY_AGO):
     """
     Retrieves records from the last 24 hours (by attribute 'datetime') from db table with given name.
     """
     try:
-        table = db.Table(table_name, metadata, autoload_with=db_engine)
+        table = db.Table(table_name, _metadata, autoload_with=_db_engine)
         query = db.select(table).where(
             table.columns.datetime > datetime_cutoff)
-        response = connection.execute(query)
+        response = _connection.execute(query)
         results = response.fetchall()
         return pd.DataFrame(results)
 

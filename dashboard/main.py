@@ -9,7 +9,6 @@ from os import environ
 
 from dotenv import load_dotenv
 import sqlalchemy as db
-from sqlalchemy.engine.base import Connection
 
 from db_functions import (
     get_database_engine,
