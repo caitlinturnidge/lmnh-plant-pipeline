@@ -15,7 +15,6 @@ from sqlalchemy.engine.base import Connection
 
 load_dotenv()
 LITERAL_DAY_AGO = (datetime.now() - timedelta(hours = 24))
-TODAY = datetime.today()
 
 
 def get_database_engine():
@@ -47,7 +46,7 @@ def get_old_records(table_name: str, db_engine: db.Engine, connection: Connectio
         raise e
 
 
-def get_day_bucket_keys(s3_client: client, folder_path: str, day: int = TODAY.day,
+def get_day_bucket_keys(s3_client: client, folder_path: str, day: int = LITERAL_DAY_AGO.day,
                     bucket_name: str = environ['BUCKET_NAME']) -> list:
     """
     Returns list of keys within a given s3 bucket ending in '_{day}.csv, with a prefix matching
@@ -60,7 +59,7 @@ def get_day_bucket_keys(s3_client: client, folder_path: str, day: int = TODAY.da
 
 
 def get_current_csv_data(data_type: str, s3_client: client, bucket_name:
-                         str = environ['BUCKET_NAME'], date: str = TODAY) -> pd.DataFrame:
+                         str = environ['BUCKET_NAME'], date: str = LITERAL_DAY_AGO) -> pd.DataFrame:
     """
     Downloads relevant files of specified data_type (watering/recording) from S3 to local, and
     then returns it as a pandas dataframe.
@@ -82,7 +81,7 @@ def get_current_csv_data(data_type: str, s3_client: client, bucket_name:
 
 
 def upload_to_s3(data_type: str, df: pd.DataFrame, s3_client,
-                 bucket_name: str = environ['BUCKET_NAME'], date: str = TODAY):
+                 bucket_name: str = environ['BUCKET_NAME'], date: str = LITERAL_DAY_AGO):
     """Uploads pandas dataframe of data_type to appropriate csv in s3 bucket."""
     s3_client.put_object(Body = df.to_csv(index=False), Bucket = bucket_name,
                          Key = f'{date.year}/{date.month}/{data_type}_{date.day}.csv')
