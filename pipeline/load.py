@@ -20,8 +20,9 @@ def get_database_engine():
 
 def upload_recordings(data, conn: Connection, table: db.Table) -> None:
     """Uploads recording data to the database."""
+    data_dict = data.to_dict(orient='records')
     try:
-        conn.execute(table.insert(), data)
+        conn.execute(table.insert(), data_dict)
         conn.commit()
     except Exception as e:
         conn.rollback()
@@ -30,8 +31,9 @@ def upload_recordings(data, conn: Connection, table: db.Table) -> None:
 
 def upload_waterings(data, conn: Connection, table: db.Table) -> None:
     """Uploads watering data to the database."""
+    data_dict = data.to_dict(orient='records')
     try:
-        conn.execute(table.insert(), data)
+        conn.execute(table.insert(), data_dict)
         conn.commit()
     except Exception as e:
         conn.rollback()
@@ -40,10 +42,12 @@ def upload_waterings(data, conn: Connection, table: db.Table) -> None:
 
 def load(recordings, waterings) -> None:
     """Main function to run the whole load script."""
+    load_dotenv()
     db_engine = get_database_engine()
     db_connection = db_engine.connect()
     db_metadata = db.MetaData(schema=environ['DB_SCHEMA'])
-    recording_table = db.Table("recording", db_metadata, autoload_with=db_engine)
+    recording_table = db.Table(
+        "recording", db_metadata, autoload_with=db_engine)
     watering_table = db.Table("watering", db_metadata, autoload_with=db_engine)
     upload_recordings(recordings, db_connection, recording_table)
     upload_waterings(waterings, db_connection, watering_table)
