@@ -32,12 +32,13 @@ def upload_recordings(data, conn: Connection, table: db.Table) -> None:
 def upload_waterings(data, conn: Connection, table: db.Table) -> None:
     """Uploads watering data to the database."""
     data_dict = data.to_dict(orient='records')
-    try:
-        conn.execute(table.insert(), data_dict)
-        conn.commit()
-    except Exception as e:
-        conn.rollback()
-        raise e
+    for watering in data_dict:
+        try:
+            query = db.insert(table).values(plant_id = watering['plant_id'], datetime = watering['datetime'])
+            conn.execute(query)
+            conn.commit()
+        except Exception as e:
+            conn.rollback()
 
 
 def load(recordings, waterings) -> None:
