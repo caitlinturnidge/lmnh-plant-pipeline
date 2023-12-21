@@ -8,11 +8,9 @@ from datetime import timedelta, datetime
 from os import environ
 
 from dotenv import load_dotenv
-import sqlalchemy as db
-from sqlalchemy.engine.base import Connection
 
 from db_functions import (
-    get_database_engine,
+    MSSQL_Database,
     get_24hr_data
 )
 
@@ -165,11 +163,9 @@ def main():
 
     load_dotenv()
 
-    db_engine = get_database_engine()
-    db_connection = db_engine.connect()
-    db_metadata = db.MetaData(schema=environ['DB_SCHEMA'])
+    database = MSSQL_Database()
 
-    db_data = get_24hr_data('recording', db_engine, db_connection, db_metadata)
+    db_data = get_24hr_data('recording', database)
 
     # db_data = pd.read_csv('mock_data_multi_plants.csv')
     # db_data = db_data.rename(columns={'recording_taken': 'datetime'})
