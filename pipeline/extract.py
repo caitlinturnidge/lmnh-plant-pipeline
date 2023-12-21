@@ -59,26 +59,5 @@ def extract():
     return recording_df, watering_df
 
 
-def transform(recording_df, watering_df):
-    """Cleans the extracted data frames."""
-    recording_df['recording_taken'] = pd.to_datetime(
-        recording_df['recording_taken'])
-    recording_df = recording_df.rename(columns={'recording_taken': 'datetime'})
-    watering_df['last_watered'] = pd.to_datetime(
-        watering_df['last_watered']).dt.tz_localize(None)
-    watering_df = watering_df.rename(columns={'last_watered': 'datetime'})
-    return recording_df, watering_df
-
-
-def extract_and_transform():
-    """Function to run the whole script, extracts and transforms."""
-    recordings, waterings = extract()
-    transformed_recordings, transformed_waterings = transform(
-        recordings, waterings)
-    transformed_recordings.to_csv(
-        '/tmp/recording_data_SAMPLE.csv', index=False)
-    transformed_waterings.to_csv('/tmp/watering_data_SAMPLE.csv', index=False)
-
-
 if __name__ == "__main__":
-    extract_and_transform()
+    extract()
