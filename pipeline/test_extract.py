@@ -21,4 +21,3 @@ def test_get_watering_data_no_data():
     data = {}
     assert get_watering_data(data) == {
         'plant_id': None, 'last_watered': None}
-
