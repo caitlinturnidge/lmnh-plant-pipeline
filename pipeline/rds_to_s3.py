@@ -14,7 +14,7 @@ from sqlalchemy.engine.base import Connection
 
 
 load_dotenv()
-LITERAL_DAY_AGO = (datetime.now() - timedelta(hours = 24))
+
 
 
 def get_database_engine():
@@ -30,7 +30,7 @@ def get_database_engine():
 
 
 def get_old_records(table_name: str, db_engine: db.Engine, connection: Connection, metadata,
-                    datetime_cutoff: str = LITERAL_DAY_AGO):
+                    datetime_cutoff: str):
     """
     Retrieves records older than 24 hours (by attribute 'datetime') from db table with given name
     (watering/recording).
@@ -46,7 +46,7 @@ def get_old_records(table_name: str, db_engine: db.Engine, connection: Connectio
         raise e
 
 
-def get_day_bucket_keys(s3_client: client, folder_path: str, day: int = LITERAL_DAY_AGO.day,
+def get_day_bucket_keys(s3_client: client, folder_path: str, day: int,
                     bucket_name: str = environ['BUCKET_NAME']) -> list:
     """
     Returns list of keys within a given s3 bucket ending in '_{yesterday}.csv, with a prefix matching
@@ -58,8 +58,8 @@ def get_day_bucket_keys(s3_client: client, folder_path: str, day: int = LITERAL_
     return []
 
 
-def get_current_csv_data(data_type: str, s3_client: client, bucket_name:
-                         str = environ['BUCKET_NAME'], date: str = LITERAL_DAY_AGO) -> pd.DataFrame:
+def get_current_csv_data(data_type: str, s3_client: client, date: str, bucket_name:
+                         str = environ['BUCKET_NAME']) -> pd.DataFrame:
     """
     Downloads relevant files of specified data_type (watering/recording) from S3 to local, and
     then returns it as a pandas dataframe.
@@ -81,7 +81,7 @@ def get_current_csv_data(data_type: str, s3_client: client, bucket_name:
 
 
 def upload_to_s3(data_type: str, df: pd.DataFrame, s3_client,
-                 bucket_name: str = environ['BUCKET_NAME'], date: str = LITERAL_DAY_AGO):
+                 date: str, bucket_name: str = environ['BUCKET_NAME']):
     """Uploads pandas dataframe of data_type to appropriate csv in s3 bucket."""
     s3_client.put_object(Body = df.to_csv(index=False), Bucket = bucket_name,
                          Key = f'{date.year}/{date.month}/{data_type}_{date.day}.csv')
@@ -89,7 +89,7 @@ def upload_to_s3(data_type: str, df: pd.DataFrame, s3_client,
 
 
 def delete_oldest_records(table_name: str, db_engine: db.Engine, connection: Connection, metadata,
-                          datetime_cutoff: str = LITERAL_DAY_AGO):
+                          datetime_cutoff: str):
     """
     Deletes records older than 24 hours (by attribute 'datetime') from db table with given name
     (watering/recording).
@@ -110,6 +110,8 @@ def update_rds_and_s3():
     the csv files in s3 bucket for current day (if any exist), and saves the result as csvs in the
     bucket with a name ending in _{yesterday}.csv.
     """
+    literal_day_ago = (datetime.now() - timedelta(hours = 24))
+
     db_engine = get_database_engine()
     db_connection = db_engine.connect()
     db_metadata = db.MetaData(schema=environ['DB_SCHEMA'])
@@ -119,10 +121,10 @@ def update_rds_and_s3():
                        aws_secret_access_key=environ['AWS_SECRET_ACCESS_KEY_'])
 
     for data_type in ['recording', 'watering']:
-        df = get_old_records(data_type, db_engine, db_connection, db_metadata)
-        df = pd.concat([get_current_csv_data(data_type, s3_client), df])
-        upload_to_s3(data_type, df, s3_client)
-        delete_oldest_records(data_type, db_engine, db_connection, db_metadata)
+        df = get_old_records(data_type, db_engine, db_connection, db_metadata, literal_day_ago)
+        df = pd.concat([get_current_csv_data(data_type, s3_client, literal_day_ago), df])
+        upload_to_s3(data_type, df, s3_client, literal_day_ago)
+        delete_oldest_records(data_type, db_engine, db_connection, db_metadata, literal_day_ago)
 
     db_connection.close()
 
