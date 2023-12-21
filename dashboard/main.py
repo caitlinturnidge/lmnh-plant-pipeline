@@ -89,7 +89,7 @@ def get_temperature_chart(chart_data: pd.DataFrame) -> alt.Chart:
     ).configure_axis(
         labelFontSize=TICK_LABEL_FONT_SIZE,
         titleFontSize=AXIS_LABEL_FONT_SIZE,
-    )
+    ).interactive()
 
     return chart
 
