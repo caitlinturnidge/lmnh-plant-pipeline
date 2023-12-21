@@ -49,7 +49,7 @@ def get_old_records(table_name: str, db_engine: db.Engine, connection: Connectio
 def get_day_bucket_keys(s3_client: client, folder_path: str, day: int = LITERAL_DAY_AGO.day,
                     bucket_name: str = environ['BUCKET_NAME']) -> list:
     """
-    Returns list of keys within a given s3 bucket ending in '_{day}.csv, with a prefix matching
+    Returns list of keys within a given s3 bucket ending in '_{yesterday}.csv, with a prefix matching
     the given folder_path.
     """
     objects = s3_client.list_objects(Bucket=bucket_name, Prefix=folder_path).get('Contents')
@@ -108,7 +108,7 @@ def update_rds_and_s3():
     """
     Gets any records from watering and recording tables in df older than 24hours, combines with
     the csv files in s3 bucket for current day (if any exist), and saves the result as csvs in the
-    bucket with a name ending in _{day}.csv.
+    bucket with a name ending in _{yesterday}.csv.
     """
     db_engine = get_database_engine()
     db_connection = db_engine.connect()
