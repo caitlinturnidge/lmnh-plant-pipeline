@@ -58,7 +58,7 @@ def get_day_bucket_keys(s3_client: client, folder_path: str, day: int,
     return []
 
 
-def get_current_csv_data(data_type: str, s3_client: client, date: str, bucket_name:
+def get_current_csv_data(data_type: str, s3_client: client, date: datetime, bucket_name:
                          str = environ['BUCKET_NAME']) -> pd.DataFrame:
     """
     Downloads relevant files of specified data_type (watering/recording) from S3 to local, and
@@ -66,7 +66,7 @@ def get_current_csv_data(data_type: str, s3_client: client, date: str, bucket_na
     """
 
     folder_path = f'{date.year}/{date.month}'
-    keys = get_day_bucket_keys(s3_client, folder_path, date)
+    keys = get_day_bucket_keys(s3_client, folder_path, date.day)
     type_keys = [key for key in keys if data_type in key]
     if type_keys:
         type_key = type_keys[0]
