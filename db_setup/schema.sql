@@ -37,7 +37,7 @@ CREATE TABLE s_beta.watering(
 GO
 
 ALTER TABLE s_beta.watering
-    ADD CONSTRAINT "plant_id_primary" PRIMARY KEY("id");
+    ADD CONSTRAINT "watering_id_primary" PRIMARY KEY("id");
 GO
 
 ALTER TABLE s_beta.watering
