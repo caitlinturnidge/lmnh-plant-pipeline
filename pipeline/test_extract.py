@@ -17,6 +17,13 @@ def test_get_watering_data_no_valid_keys():
         'plant_id': None, 'last_watered': None}
 
 
+def test_get_watering_data_no_data():
+    """Test the function has None for each value if no no data is given."""
+    data = {}
+    assert get_watering_data(data) == {
+        'plant_id': None, 'last_watered': None}
+
+
 def test_transform_function():
     """Test that column names are changed correctly."""
     data = {'recording_taken': 'Wed, 20 Dec 2023 14:03:04 GMT'}
