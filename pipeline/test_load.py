@@ -1,6 +1,7 @@
 """Unit tests for load.py"""
 from os import environ
 from unittest.mock import MagicMock, patch
+from sqlalchemy import Table, MetaData
 
 from load import upload_recordings, upload_waterings
 
@@ -17,10 +18,14 @@ def test_upload_recordings_correct_calls(mock_get_recordings_csv):
         {'plant_id': 1, 'soil_moisture': 30, 'temperature': 25,
          'recording_taken': 'test0'}
     ]
+    db_metadata = MetaData()
+    table = Table("test", db_metadata)
     conn = MagicMock()
     mock_execute = conn.execute
-    upload_recordings(conn)
-    assert mock_execute.call_count == 4
+    mock_commit = conn.commit
+    upload_recordings(conn, table)
+    assert mock_execute.call_count == 1
+    assert mock_commit.call_count == 1
 
 
 @patch("load.get_waterings_csv")
@@ -30,6 +35,8 @@ def test_upload_waterings_correct_calls_empty_data(mock_get_waterings_csv):
     conn = MagicMock()
     mock_execute = conn.execute
     mock_commit = conn.commit
-    upload_waterings(conn)
-    assert mock_execute.call_count == 2
-    assert mock_commit.call_count == 0
+    db_metadata = MetaData()
+    table = Table("test", db_metadata)
+    upload_waterings(conn, table)
+    assert mock_execute.call_count == 1
+    assert mock_commit.call_count == 1

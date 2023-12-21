@@ -3,6 +3,7 @@ import logging
 from dotenv import load_dotenv
 
 from extract import extract
+from transform import transform
 from load import load
 from rds_to_s3 import update_rds_and_s3
 
@@ -19,10 +20,14 @@ def run_pipeline():
     load_dotenv()
     logger = set_up_logger()
 
-    extract()
-    logger.info("All plant data has been extracted and cleaned.")
+    recordings, waterings = extract()
+    logger.info("All plant data has been extracted from the API.")
 
-    load()
+    transformed_recordings, transformed_waterings = transform(
+        recordings, waterings)
+    logger.info("All plant data has been transformed.")
+
+    load(transformed_recordings, transformed_waterings)
     logger.info("Plant data has been loaded into the short term database.")
 
     update_rds_and_s3()

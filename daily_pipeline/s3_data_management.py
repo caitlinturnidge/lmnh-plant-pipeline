@@ -10,8 +10,9 @@ import pandas as pd
 
 from boto3 import client
 
-TODAY = datetime.today()
-YESTERDAY = TODAY - timedelta(days=1)
+
+YESTERDAY = datetime.today() - timedelta(days=1)
+DAY_BEFORE_YESTERDAY = datetime.today() - timedelta(days=2)
 
 
 def create_s3_client():
@@ -39,33 +40,42 @@ def save_df_to_s3_bucket(s3_client: client, df: pd.DataFrame, key: str, bucket: 
 def combine_csv_files_for_month(s3_client: client, bucket_name: str):
     """Downloads relevant files from S3 to local, converts into two pandas data frames and saves them, 
            old csv files that have been combined are deleted."""
-    folder_path = f'{YESTERDAY.year}/{YESTERDAY.month}'
+    folder_path = f'{DAY_BEFORE_YESTERDAY.year}/{DAY_BEFORE_YESTERDAY.month}'
     keys = get_bucket_keys(s3_client, folder_path, bucket_name)
 
     for data_type in ['watering', 'recording']:
         type_keys = [key for key in keys if data_type in key and
-                     key.split('_')[-1] != str(TODAY.day)]
+                     key.split('_')[-1] != f'{str(YESTERDAY.day)}.csv']
 
         # ^^ Don't want data from live files
         responses = [s3_client.get_object(
             Bucket=bucket_name, Key=key) for key in type_keys]
         # ^^ List comprehension handles start / end of month
 
-        df = pd.concat([pd.read_csv(response.get("Body"))
-                        for response in responses])
+        dfs = []
 
-        save_df_to_s3_bucket(
-            s3_client, df, f"{folder_path}/{data_type}.csv", bucket_name)
+        for response in responses:
+            try:
+                df = pd.read_csv(response.get("Body"))
+                dfs.append(df)
+            except pd.errors.EmptyDataError:
+                pass
+
+        if dfs:
+            final_df = pd.concat(dfs, ignore_index=True)
+            save_df_to_s3_bucket(
+                s3_client, final_df, f"{folder_path}/{data_type}.csv", bucket_name)
+
         s3_client.delete_object(
-            Bucket=bucket_name, Key=f"{folder_path}/{data_type}_{YESTERDAY.day}.csv")
+            Bucket=bucket_name, Key=f"{folder_path}/{data_type}_{DAY_BEFORE_YESTERDAY.day}.csv")
 
 
-def handler(event=None, context=None):
-    """Function to run the whole management script as a Lambda function."""
+def management():
+    """Function to run the whole management script."""
     s3_client = create_s3_client()
     combine_csv_files_for_month(s3_client, environ['BUCKET_NAME'])
 
 
 if __name__ == "__main__":
     load_dotenv()
-    handler()
+    management()
