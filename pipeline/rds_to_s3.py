@@ -30,7 +30,7 @@ def get_database_engine():
 
 
 def get_old_records(table_name: str, db_engine: db.Engine, connection: Connection, metadata,
-                    datetime_cutoff: str):
+                    datetime_cutoff: datetime):
     """
     Retrieves records older than 24 hours (by attribute 'datetime') from db table with given name
     (watering/recording).
@@ -81,7 +81,7 @@ def get_current_csv_data(data_type: str, s3_client: client, date: datetime, buck
 
 
 def upload_to_s3(data_type: str, df: pd.DataFrame, s3_client,
-                 date: str, bucket_name: str = environ['BUCKET_NAME']):
+                 date: datetime, bucket_name: str = environ['BUCKET_NAME']):
     """Uploads pandas dataframe of data_type to appropriate csv in s3 bucket."""
     s3_client.put_object(Body = df.to_csv(index=False), Bucket = bucket_name,
                          Key = f'{date.year}/{date.month}/{data_type}_{date.day}.csv')
@@ -89,7 +89,7 @@ def upload_to_s3(data_type: str, df: pd.DataFrame, s3_client,
 
 
 def delete_oldest_records(table_name: str, db_engine: db.Engine, connection: Connection, metadata,
-                          datetime_cutoff: str):
+                          datetime_cutoff: datetime):
     """
     Deletes records older than 24 hours (by attribute 'datetime') from db table with given name
     (watering/recording).
