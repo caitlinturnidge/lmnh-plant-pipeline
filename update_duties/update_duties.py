@@ -7,7 +7,7 @@ from functools import partial
 
 from dotenv import load_dotenv
 import pandas as pd
-import requests
+from requests import get
 
 import database_functions as dbf
 
@@ -17,7 +17,7 @@ BASE_URL = "https://data-eng-plants-api.herokuapp.com/plants/"
 
 def get_api_botanist_name_by_plant_id(plant_id: int) -> list[dict]:
     """Gets plant data from API using ID."""
-    api_botanist_info = requests.get(BASE_URL + str(plant_id),
+    api_botanist_info = get(BASE_URL + str(plant_id),
                                      timeout=100).json().get('botanist', {})
     return api_botanist_info.get('name','').split()
 

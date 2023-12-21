@@ -1,4 +1,4 @@
-"""Module to contain """
+"""Module to contain database functions used in update_duties.py"""
 
 
 from datetime import datetime
