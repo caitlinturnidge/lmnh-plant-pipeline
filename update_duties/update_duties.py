@@ -1,6 +1,11 @@
-from dotenv import load_dotenv
+"""
+Module containing functions to update duty table in database according to current state of the API
+data.
+"""
+
 from functools import partial
-from os import environ
+
+from dotenv import load_dotenv
 import pandas as pd
 import requests
 
@@ -12,14 +17,16 @@ BASE_URL = "https://data-eng-plants-api.herokuapp.com/plants/"
 
 def get_api_botanist_name_by_plant_id(plant_id: int) -> list[dict]:
     """Gets plant data from API using ID."""
-    api_botanist_info = requests.get(BASE_URL + str(plant_id), timeout=100).json().get('botanist', {})
+    api_botanist_info = requests.get(BASE_URL + str(plant_id),
+                                     timeout=100).json().get('botanist', {})
     return api_botanist_info.get('name','').split()
-    
+
 
 
 def check_if_duty_exists_in_duties(plant_id: int, botanist_id: int, duties: pd.DataFrame) -> bool:
     """Returns whether there is a duty in dataframe matching both plant and botanist id."""
-    return not duties[(duties['plant_id'] == plant_id) & (duties['botanist_id'] == botanist_id)].empty
+    return not duties[(duties['plant_id'] == plant_id) &
+                      (duties['botanist_id'] == botanist_id)].empty
 
 
 def cross_reference_api_and_db_duties():

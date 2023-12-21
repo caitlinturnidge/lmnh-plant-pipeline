@@ -1,14 +1,19 @@
+"""Module to contain """
+
 
 from datetime import datetime
-from dotenv import load_dotenv
 from os import environ
-import pandas as pd
 
+from dotenv import load_dotenv
+import pandas as pd
 import sqlalchemy as db
-from sqlalchemy.engine.base import Connection
 
 
 class MSSQL_Database():
+    """
+    Class containing key objects used in database interactions; aims to encapsulate and abstract
+    db connection details from other classes.
+    """
 
     def __init__(self) -> None:
         """
@@ -25,7 +30,7 @@ class MSSQL_Database():
         except Exception as e:
             print(f"Error connecting to database: {e}")
             raise e
-        
+
     def commit(self):
         """Commits db connection for changes made to persist externally."""
         self.connection.commit()
@@ -38,13 +43,15 @@ class MSSQL_Database():
 
 def add_duty(database: MSSQL_Database, plant_id: int, botanist_id: int):
     """
-    Updates any duties in duty table with plant id and NULL end column to current datetime, and add a new duty for plant and botanist id.
+    Updates any duties in duty table with plant id and NULL end column to current datetime, and add
+    a new duty for plant and botanist id.
     """
-    
+
     try:
         duty_table = db.Table('duty', database.metadata, autoload_with=database.engine)
         # Update old duty:
-        query = db.update(duty_table).values(end=datetime.now()).where((duty_table.c.plant_id == plant_id) & (duty_table.c.end == None))
+        query = db.update(duty_table).values(end=datetime.now())\
+            .where((duty_table.c.plant_id == plant_id) & (duty_table.c.end == None))
         database.connection.execute(query)
 
         # Add new duty
@@ -68,7 +75,7 @@ def get_db_plant_ids(database: MSSQL_Database) -> list:
 
     except Exception as e:
         raise e
-    
+
 
 def get_active_duties(database: MSSQL_Database) -> pd.DataFrame:
     """Retrieves pandas df of all records in db duty table without an end date."""
@@ -81,13 +88,14 @@ def get_active_duties(database: MSSQL_Database) -> pd.DataFrame:
 
     except Exception as e:
         raise e
-    
+
 
 def get_botanist_by_name(forename: str, surname: str, database: MSSQL_Database) -> pd.DataFrame:
     """Retrieves pandas df of first record in db botanist table with specified fore- and surname."""
     try:
         botanist_table = db.Table('botanist', database.metadata, autoload_with=database.engine)
-        query = db.select(botanist_table).where(botanist_table.columns.firstname == forename and botanist_table.columns.lastname == surname)
+        query = db.select(botanist_table).where(botanist_table.columns.firstname == forename and
+                                                botanist_table.columns.lastname == surname)
         response = database.connection.execute(query)
         result = response.first()
         return list(result)
@@ -107,11 +115,11 @@ def get_table_records(table_name: str, database: MSSQL_Database) -> pd.DataFrame
 
     except Exception as e:
         raise e
-    
+
 
 if __name__ == "__main__":
     load_dotenv()
 
-    database = MSSQL_Database()
+    test_database = MSSQL_Database()
 
-    add_duty(database, 5, 10)
+    print(get_active_duties(test_database))
