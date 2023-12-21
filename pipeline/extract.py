@@ -1,9 +1,10 @@
 """Script to extract and clean API data."""
+import concurrent.futures
+
 import logging
 import pandas as pd
 from requests import get
-from time
-import concurrent.futures
+
 
 BASE_URL = 'https://data-eng-plants-api.herokuapp.com/plants/'
 NO_OF_PLANTS = 51
@@ -39,7 +40,7 @@ def get_watering_data(data: dict) -> dict:
 
 
 def extract():
-    """Function to extract all the soil moisture and temperature readings and save them to dataframes."""
+    """Function to extract all the moisture and temperature readings and save them to dataframes."""
     with concurrent.futures.ThreadPoolExecutor() as executor:
         all_data_list = list(executor.map(get_plant_data, range(NO_OF_PLANTS)))
 
