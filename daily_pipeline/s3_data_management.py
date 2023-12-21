@@ -71,7 +71,7 @@ def combine_csv_files_for_month(s3_client: client, bucket_name: str):
 
 
 def management():
-    """Function to run the whole management script as a Lambda function."""
+    """Function to run the whole management script."""
     s3_client = create_s3_client()
     combine_csv_files_for_month(s3_client, environ['BUCKET_NAME'])
 
