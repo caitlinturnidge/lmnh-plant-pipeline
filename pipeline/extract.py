@@ -1,7 +1,10 @@
 """Script to extract and clean API data."""
+import concurrent.futures
+
 import logging
 import pandas as pd
 from requests import get
+
 
 BASE_URL = 'https://data-eng-plants-api.herokuapp.com/plants/'
 NO_OF_PLANTS = 51
@@ -37,48 +40,21 @@ def get_watering_data(data: dict) -> dict:
 
 
 def extract():
-    """Function to extract all the soil moisture and temperature readings and save them to dataframes."""
-    logger = set_up_logger()
-    recording_data_list, watering_data_list = [], []
+    """Function to extract all the moisture and temperature readings and save them to dataframes."""
+    with concurrent.futures.ThreadPoolExecutor() as executor:
+        all_data_list = list(executor.map(get_plant_data, range(NO_OF_PLANTS)))
 
-    for plant_id in range(NO_OF_PLANTS):
+    df = pd.DataFrame(all_data_list)
 
-        data = get_plant_data(plant_id)
+    recordings = df[['plant_id', 'soil_moisture',
+                    'temperature', 'recording_taken']]
+    waterings = df[['plant_id', 'last_watered']]
 
-        recording_data = get_recording_data(data)
-        watering_data = get_watering_data(data)
+    recording_df = pd.DataFrame(recordings).dropna()
+    watering_df = pd.DataFrame(waterings).dropna()
 
-        recording_data_list.append(recording_data)
-        watering_data_list.append(watering_data)
-
-        if plant_id % 5 == 0 and plant_id > 0:
-            logger.info('Data has been retrieved for %s plants', plant_id)
-
-    recording_df = pd.DataFrame(recording_data_list).dropna()
-    watering_df = pd.DataFrame(watering_data_list).dropna()
     return recording_df, watering_df
-
-
-def transform(recording_df, watering_df):
-    """Cleans the extracted data frames."""
-    recording_df['recording_taken'] = pd.to_datetime(
-        recording_df['recording_taken'])
-    recording_df = recording_df.rename(columns={'recording_taken': 'datetime'})
-    watering_df['last_watered'] = pd.to_datetime(
-        watering_df['last_watered']).dt.tz_localize(None)
-    watering_df = watering_df.rename(columns={'last_watered': 'datetime'})
-    return recording_df, watering_df
-
-
-def extract_and_transform():
-    """Function to run the whole script, extracts and transforms."""
-    recordings, waterings = extract()
-    transformed_recordings, transformed_waterings = transform(
-        recordings, waterings)
-    transformed_recordings.to_csv(
-        '/tmp/recording_data_SAMPLE.csv', index=False)
-    transformed_waterings.to_csv('/tmp/watering_data_SAMPLE.csv', index=False)
 
 
 if __name__ == "__main__":
-    extract_and_transform()
+    extract()
