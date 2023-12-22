@@ -91,6 +91,26 @@ resource "aws_iam_role" "lambda-role" {
   })
 }
 
+# Create a role policy to allow CloudWatch logs
+
+resource "aws_iam_role_policy" "lambda-logs" {
+  name   = "lambda-logs"
+  role   = aws_iam_role.lambda-role.name
+  policy = jsonencode({
+    "Statement": [
+      {
+        "Action": [
+          "logs:CreateLogGroup",
+          "logs:CreateLogStream",
+          "logs:PutLogEvents",
+        ],
+        "Effect": "Allow",
+        "Resource": "arn:aws:logs:*:*:*",
+      }
+    ]
+  })
+}
+
 # Create Lambda function
 
 resource "aws_lambda_function" "data_management_lambda" {
@@ -98,6 +118,7 @@ resource "aws_lambda_function" "data_management_lambda" {
     role                           = aws_iam_role.lambda-role.arn 
     image_uri = "129033205317.dkr.ecr.eu-west-2.amazonaws.com/c9-butterflies-data-management:latest"
     package_type = "Image"
+    depends_on = [aws_iam_role_policy.lambda-logs]
 
     environment {
         variables = {
@@ -155,6 +176,8 @@ resource "aws_lambda_function" "pipeline-lambda" {
   package_type = "Image"
   timeout = 540
   memory_size = 512
+  depends_on = [aws_iam_role_policy.lambda-logs]
+
   environment {
     variables = {
       AWS_ACCESS_KEY_ID_=var.AWS_ACCESS_KEY_ID_
