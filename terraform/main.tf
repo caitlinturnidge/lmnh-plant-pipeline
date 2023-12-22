@@ -15,7 +15,7 @@ data "aws_ecs_cluster" "c9-cluster" {
 # Create ECR repository 
 
 resource "aws_ecr_repository" "dashboard-repo" {
-  name                 = "c9-butterflies-dashboard-terraform"
+  name                 = "c9-butterflies-dashboard"
   image_tag_mutability = "MUTABLE"
 
   image_scanning_configuration {
@@ -27,12 +27,12 @@ resource "aws_ecr_repository" "dashboard-repo" {
 # # Create task definition 
 
 resource "aws_ecs_task_definition" "dashboard-taskdef" {
-    family = "c9-butterflies-dashboard-taskdef-terraform"
+    family = "c9-butterflies-dashboard-taskdef"
     requires_compatibilities = ["FARGATE"]
     network_mode = "awsvpc"
     container_definitions = jsonencode([
     {
-      "name": "c9-butterflies-dashboard-terraform",
+      "name": "c9-butterflies-dashboard",
       "image": "129033205317.dkr.ecr.eu-west-2.amazonaws.com/c9-butterflies-dashboard-repo:latest",
       essential = true
       environment = [
@@ -60,7 +60,7 @@ resource "aws_ecs_task_definition" "dashboard-taskdef" {
 }
 
 resource "aws_ecs_service" "dashboard-service" {
-    name = "c9-butterflies-dashboard-service-terraform"
+    name = "c9-butterflies-dashboard-service"
     cluster = data.aws_ecs_cluster.c9-cluster.id
     task_definition = "arn:aws:ecs:eu-west-2:129033205317:task-definition/c9-butterflies-dashboard-taskdef:1"
     desired_count = 1
@@ -94,7 +94,7 @@ resource "aws_iam_role" "lambda-role" {
 # Create Lambda function
 
 resource "aws_lambda_function" "data_management_lambda" {
-    function_name                  = "c9-butterflies-data-management-terraform"
+    function_name                  = "c9-butterflies-data-management"
     role                           = aws_iam_role.lambda-role.arn 
     image_uri = "129033205317.dkr.ecr.eu-west-2.amazonaws.com/c9-butterflies-data-management:latest"
     package_type = "Image"
@@ -132,7 +132,7 @@ resource "aws_iam_role" "scheduler" {
 # Create the Eventbridge scheduler
 
 resource "aws_scheduler_schedule" "data_management_event" {
-  name                = "c9-butterflies-data-management-schedule-terraform"
+  name                = "c9-butterflies-data-management-schedule"
   flexible_time_window {
     mode = "OFF"
   }
@@ -149,7 +149,7 @@ resource "aws_scheduler_schedule" "data_management_event" {
 # Lambda function that runs the pipeline every minute
 
 resource "aws_lambda_function" "pipeline-lambda" {
-  function_name = "c9-butterflies-pipeline-lambda-tf"
+  function_name = "c9-butterflies-pipeline-lambda"
   role = aws_iam_role.lambda-role.arn
   image_uri = "129033205317.dkr.ecr.eu-west-2.amazonaws.com/c9-butterflies-pipeline:latest"
   package_type = "Image"
@@ -174,7 +174,7 @@ resource "aws_lambda_function" "pipeline-lambda" {
 # EventBridge Schedule that runs the pipeline lambda every minute
 
 resource "aws_scheduler_schedule" "pipeline-event" {
-  name                = "c9-butterflies-pipeline-schedule-tf"
+  name                = "c9-butterflies-pipeline-schedule"
   flexible_time_window {
     mode = "OFF"
   }
