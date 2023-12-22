@@ -41,4 +41,5 @@ variable "DB_USER" {
 variable "DB_PASSWORD" {
     description = "DB password"
     type        = string
+
 }

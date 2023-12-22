@@ -36,8 +36,12 @@ CREATE TABLE s_beta.watering(
 );
 GO
 
-ALTER TABLE
-    s_beta.watering ADD CONSTRAINT "watering_id_primary" PRIMARY KEY("id");
+ALTER TABLE s_beta.watering
+    ADD CONSTRAINT "watering_id_primary" PRIMARY KEY("id");
+GO
+
+ALTER TABLE s_beta.watering
+    ADD CONSTRAINT "unique_watering_events" UNIQUE ("plant_id", "datetime");
 GO
 
 

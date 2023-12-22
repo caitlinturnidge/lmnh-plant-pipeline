@@ -1,5 +1,4 @@
 """File to load the clean recording and watering data into the short term database."""
-import csv
 from os import environ
 
 from dotenv import load_dotenv
@@ -19,54 +18,38 @@ def get_database_engine():
         raise e
 
 
-def get_recordings_csv() -> list:
-    """Gets the cleaned recordings csv and returns it."""
-    with open('/tmp/recording_data_SAMPLE.csv', 'r', encoding="utf-8") as csv_file:
-        return list(csv.DictReader(csv_file))
-
-
-def get_waterings_csv() -> list:
-    """Gets the cleaned waterings csv and returns it."""
-    with open('/tmp/watering_data_SAMPLE.csv', 'r', encoding="utf-8") as csv_file:
-        return list(csv.DictReader(csv_file))
-
-
-def upload_recordings(conn: Connection, table: db.Table) -> None:
+def upload_recordings(data, conn: Connection, table: db.Table) -> None:
     """Uploads recording data to the database."""
-    data = get_recordings_csv()
-
+    data_dict = data.to_dict(orient='records')
     try:
-        conn.execute(table.insert(), data)
+        conn.execute(table.insert(), data_dict)
         conn.commit()
     except Exception as e:
         conn.rollback()
         raise e
 
 
-def upload_waterings(conn: Connection, table: db.Table) -> None:
+def upload_waterings(data, conn: Connection, table: db.Table) -> None:
     """Uploads watering data to the database."""
-    data = get_waterings_csv()
+    data_dict = data.to_dict(orient='records')
+    for watering in data_dict:
+        try:
+            query = db.insert(table).values(plant_id = watering['plant_id'], datetime = watering['datetime'])
+            conn.execute(query)
+            conn.commit()
+        except Exception as e:
+            conn.rollback()
 
-    try:
-        conn.execute(table.insert(), data)
-        conn.commit()
-    except Exception as e:
-        conn.rollback()
-        raise e
 
-
-def load() -> None:
+def load(recordings, waterings) -> None:
     """Main function to run the whole load script."""
+    load_dotenv()
     db_engine = get_database_engine()
     db_connection = db_engine.connect()
     db_metadata = db.MetaData(schema=environ['DB_SCHEMA'])
-    recording_table = db.Table("recording", db_metadata, autoload_with=db_engine)
+    recording_table = db.Table(
+        "recording", db_metadata, autoload_with=db_engine)
     watering_table = db.Table("watering", db_metadata, autoload_with=db_engine)
-    upload_recordings(db_connection, recording_table)
-    upload_waterings(db_connection, watering_table)
+    upload_recordings(recordings, db_connection, recording_table)
+    upload_waterings(waterings, db_connection, watering_table)
     db_connection.close()
-
-
-if __name__ == "__main__":
-    load_dotenv()
-    load()

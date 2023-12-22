@@ -2,4 +2,5 @@ sqlalchemy
 python-dotenv
 pandas
 boto3
+pytest 
 requests
