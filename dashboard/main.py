@@ -9,7 +9,6 @@ from os import environ
 
 from dotenv import load_dotenv
 import sqlalchemy as db
-from sqlalchemy.engine.base import Connection
 
 from db_functions import (
     get_database_engine,
@@ -22,12 +21,13 @@ from data_utils import (
 )
 
 LINE_WIDTH = 2
-FIG_WIDTH = 1200
-FIG_HEIGHT = int(FIG_WIDTH / 4)
+FIG_WIDTH = 750
+FIG_HEIGHT = 400  # int(FIG_WIDTH / 4)
 TICK_LABEL_FONT_SIZE = 14
 AXIS_LABEL_FONT_SIZE = 16
 
-st.set_page_config(layout="wide")
+st.set_page_config(
+    layout="wide", page_title="LMNH Plant Health", page_icon="🌿")
 
 
 def get_moisture_data(data: pd.DataFrame, sample_rate: str) -> pd.DataFrame:
@@ -89,7 +89,7 @@ def get_temperature_chart(chart_data: pd.DataFrame) -> alt.Chart:
     ).configure_axis(
         labelFontSize=TICK_LABEL_FONT_SIZE,
         titleFontSize=AXIS_LABEL_FONT_SIZE,
-    )
+    ).interactive()
 
     return chart
 
@@ -97,7 +97,7 @@ def get_temperature_chart(chart_data: pd.DataFrame) -> alt.Chart:
 def get_selected_plant(chart_data: pd.DataFrame) -> int:
     """Builds sidebar selector and gets chosen plant."""
 
-    return st.sidebar.selectbox('Select Plant', chart_data['plant_id'].unique())
+    return st.sidebar.selectbox('Plant ID', chart_data['plant_id'].unique())
 
 
 def get_individual_plant_data(chart_data: pd.DataFrame, plant_selected: int) -> pd.DataFrame:
@@ -118,21 +118,32 @@ def build_resample_rate_slider() -> str:
     return f'{resample_rate}T'
 
 
-def build_moisture_header_and_metric(chart_data: pd.DataFrame) -> None:
+def build_moisture_header_and_metric(chart_data: pd.DataFrame, selected_plant: int) -> None:
     """Builds soil moisture header and metric."""
 
+    col1, col2 = st.columns([1, 3])
     latest_data = chart_data.iloc[-1]
-    st.header('🚿 Soil Moisture')
-    st.metric('Current Soil Moisture',
-              f"{latest_data['soil_moisture']:.1f}%", delta='4')
+
+    with col1:
+        st.subheader('🚿 Soil Moisture')
+
+    with col2:
+        st.metric(f'Current Level',
+                  f"{latest_data['soil_moisture']:.1f}%")
 
 
-def build_temperature_header_and_metric(chart_data: pd.DataFrame) -> None:
+def build_temperature_header_and_metric(chart_data: pd.DataFrame, selected_plant: int) -> None:
     """Builds temperature header and metric."""
 
-    latest_data = chart_data.iloc[-1]
-    st.header('🌡️ Temperature')
-    st.metric('Current Temperature', f"{latest_data['temperature']:.1f}°C")
+    col1, col2 = st.columns([1, 3])
+
+    with col1:
+        latest_data = chart_data.iloc[-1]
+        st.subheader('🌡️ Temperature')
+
+    with col2:
+        st.metric(
+            f'Current Temperature (Plant {selected_plant})', f"{latest_data['temperature']:.1f}°C")
 
 
 def display_sidebar_image(selected_plant: int) -> None:
@@ -171,22 +182,115 @@ def main():
 
     db_data = get_24hr_data('recording', db_engine, db_connection, db_metadata)
 
-    st.sidebar.title('Plant Health Tracker')
+    st.sidebar.title(f'Plant Selector')
 
     selected_plant = get_selected_plant(db_data)
     data = get_individual_plant_data(db_data, selected_plant)
-
+    st.sidebar.write('##')
     resample_rate = build_resample_rate_slider()
 
-    build_moisture_header_and_metric(data)
-    moisture_data = get_moisture_data(data, resample_rate)
-    st.altair_chart(get_soil_moisture_chart(moisture_data))
+    idx = db_data.groupby('plant_id')['datetime'].idxmax()
+
+    new_df = db_data.loc[
+        idx, ['plant_id', 'soil_moisture', 'temperature', 'datetime']].reset_index()
+
+    col1, col2, col3 = st.columns([2, 1, 1])
+    with col1:
+
+        st.title(f'🪴 Plant Health Tracker')
+
+    with col2:
+        st.metric('Total Number of Plants 🌿',
+                  len(db_data['plant_id'].unique()))
+
+    with col3:
+
+        min_soil_moisture_index = new_df['soil_moisture'].idxmin()
+        min_soil_moisture_plant_id = new_df.loc[min_soil_moisture_index, 'plant_id']
+
+        st.metric('Lowest Moisture ⚠️',
+                  f'Plant {min_soil_moisture_plant_id}')
+
+    st.write('#')
+    st.subheader('💦 Current Moisture Levels')
+
+    with st.expander('Show graph.'):
+        chart = alt.Chart(new_df).mark_bar().encode(
+            y=alt.Y('plant_id:N', sort='-x', title='Plant ID'),
+            x=alt.X('soil_moisture:Q', title='Soil Moisture (%)'),
+            color=alt.Color('soil_moisture:Q', scale=alt.Scale(
+                scheme='redblue'), legend=None),
+            tooltip=['plant_id', 'soil_moisture']
+        ).properties(
+            width=1000,
+            height=600,
+            # title='Current Soil Moisture Levels'
+        )
+
+        st.altair_chart(chart, use_container_width=True)
+
+    st.write('#')
+
+    st.subheader('🌡️ Current Temperature Levels')
+
+    with st.expander('Show graph.'):
+        chart = alt.Chart(new_df).mark_bar().encode(
+            y=alt.Y('plant_id:N', sort='-x', title='Plant ID'),
+            x=alt.X('temperature:Q', title='Temperature (°C)'),
+            color=alt.Color('temperature:Q', scale=alt.Scale(
+                scheme='redblue', reverse=True), legend=None),
+            tooltip=['plant_id', 'temperature']
+        ).properties(
+            width=1000,
+            height=400,
+            # title='Current Soil Moisture Levels'
+        )
+        st.altair_chart(chart, use_container_width=True)
 
     st.divider()
 
-    build_temperature_header_and_metric(data)
-    temperature_data = get_temperature_data(data, resample_rate)
-    st.altair_chart(get_temperature_chart(temperature_data))
+    st.title(f'Plant {selected_plant}')
+
+    build_moisture_header_and_metric(data, selected_plant)
+
+    #  Placeholder
+    with st.expander(f'Show graph.'):
+
+        col1, col2 = st.columns([3, 1])
+
+        with col1:
+
+            moisture_data = get_moisture_data(data, resample_rate)
+            st.altair_chart(get_soil_moisture_chart(moisture_data))
+
+        with col2:
+
+            idx = db_data.groupby('plant_id')['datetime'].idxmax()
+
+            new_df = db_data.loc[
+                idx, ['plant_id', 'soil_moisture', 'temperature', 'datetime']].reset_index()
+
+            chart = alt.Chart(new_df).mark_bar().encode(
+                y=alt.Y('plant_id:N', sort='-x', title='Plant ID'),
+                x=alt.X('soil_moisture:Q', title='Soil Moisture'),
+                color=alt.Color('soil_moisture:Q', scale=alt.Scale(
+                    scheme='redblue'), legend=None),
+                tooltip=['plant_id', 'soil_moisture']
+            ).properties(
+                width=600,
+                height=400,
+                # title='Current Soil Moisture Levels'
+            )
+
+            st.altair_chart(chart, use_container_width=True)
+
+    st.divider()
+
+    build_temperature_header_and_metric(data, selected_plant)
+    with st.expander('Show graph.'):
+
+        temperature_data = get_temperature_data(data, resample_rate)
+        st.altair_chart(get_temperature_chart(temperature_data))
 
     display_sidebar_image(selected_plant)
 
@@ -194,9 +298,8 @@ def main():
 
     display_sidebar_map(selected_plant)
 
-    #  Placeholder
-    with st.expander('Open to see more'):
-        st.write('This is more content.')
+    if st.sidebar.button('🌀 Get latest readings', help='Gets latest data from the database'):
+        get_24hr_data.clear()
 
 
 if __name__ == "__main__":

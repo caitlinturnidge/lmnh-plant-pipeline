@@ -13,7 +13,7 @@ COPY mock_data_multi_plants.csv .
 COPY data_utils.py .
 COPY db_functions.py .
 COPY main.py .
-COPY config.toml
+COPY config.toml /root/.streamlit/config.toml
 
 EXPOSE 8501
 

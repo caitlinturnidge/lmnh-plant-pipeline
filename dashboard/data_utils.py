@@ -2,6 +2,7 @@
 
 import csv
 import pandas as pd
+import streamlit as st
 
 IMAGES_FILE_PATH = 'image_data_STATIC.csv'
 LOCS_FILE_PATH = 'origin_data_STATIC.csv'
