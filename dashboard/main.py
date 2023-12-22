@@ -9,10 +9,8 @@ from os import environ
 
 from dotenv import load_dotenv
 
-from db_functions import (
-    MSSQL_Database,
-    get_24hr_data
-)
+import db_functions
+import s3_data_extraction as s3_functions
 
 from data_utils import (
     get_plant_images,
@@ -37,6 +35,7 @@ def get_moisture_data(data: pd.DataFrame, sample_rate: str) -> pd.DataFrame:
 
 
 def get_soil_moisture_chart(chart_data: pd.DataFrame) -> alt.Chart:
+    """Creates altair chart of moisture against time for given df."""
 
     y_min = chart_data['soil_moisture'].min()
     y_max = chart_data['soil_moisture'].max()
@@ -46,8 +45,7 @@ def get_soil_moisture_chart(chart_data: pd.DataFrame) -> alt.Chart:
         tension=0.8,
         strokeWidth=LINE_WIDTH,
     ).encode(
-        x=alt.X('datetime:T', axis=alt.Axis(
-            title='Time', format='%H:%M')),
+        x=alt.X('datetime:T', axis=alt.Axis(title='Time')),
         y=alt.Y('soil_moisture:Q', scale=alt.Scale(
             domain=[y_min - 1, y_max + 1]), axis=alt.Axis(title='Soil Moisture (%)'))
     ).properties(
@@ -79,7 +77,7 @@ def get_temperature_chart(chart_data: pd.DataFrame) -> alt.Chart:
         strokeWidth=LINE_WIDTH,
     ).encode(
         x=alt.X('datetime:T', axis=alt.Axis(
-            title='Time', format='%H:%M')),
+            title='Time')),
         y=alt.Y('temperature:Q', scale=alt.Scale(
             domain=[y_min - 1, y_max + 1]), axis=alt.Axis(title='Temperature (°C)'))
     ).properties(
@@ -95,14 +93,15 @@ def get_temperature_chart(chart_data: pd.DataFrame) -> alt.Chart:
 
 def get_selected_plant(chart_data: pd.DataFrame) -> int:
     """Builds sidebar selector and gets chosen plant."""
-
-    return st.sidebar.selectbox('Plant ID', chart_data['plant_id'].unique())
+    plant_ids = chart_data['plant_id'].unique()
+    plant_ids.sort()
+    return st.sidebar.selectbox('Plant ID', plant_ids)
 
 
 def get_individual_plant_data(chart_data: pd.DataFrame, plant_selected: int) -> pd.DataFrame:
     """Uses selected plant ID to get individual plant data."""
 
-    plant_id = chart_data['plant_id'] == plant_selected
+    plant_id = (chart_data['plant_id'] == plant_selected)
 
     return chart_data[plant_id]
 
@@ -115,6 +114,15 @@ def build_resample_rate_slider() -> str:
         min_value=1, max_value=60, value=10, step=1)
 
     return f'{resample_rate}T'
+
+
+def build_date_range_slider(min_date_possible: datetime):
+    """Builds slider for user to select data sample range; default selected range is only the current day"""
+    today = datetime.today().date()
+    return st.slider('Sample range (selection outside of current day may incur delays): ',
+        min_value=min_date_possible,
+        max_value=datetime.today().date(),
+        value=(today, today))
 
 
 def build_moisture_header_and_metric(chart_data: pd.DataFrame, selected_plant: int) -> None:
@@ -170,22 +178,52 @@ def display_sidebar_map(selected_plant: int) -> None:
                    zoom=4)
 
 
+@st.cache_resource
+def fetch_database_object():
+    return db_functions.MSSQL_Database()
+
+
+@st.cache_resource
+def fetch_s3_client_object():
+    return s3_functions.create_s3_client()
+
+
+@st.cache_data(show_spinner='Plants be loading... 🌱')
+def get_24hr_data(table_name: str, _database: db_functions.MSSQL_Database):
+    return db_functions.get_24hr_data(table_name, _database)
+
+
+@st.cache_data()
+def get_min_s3_date(_s3_client):
+    return s3_functions.get_earliest_data_date(_s3_client)
+
+
+@st.cache_data()
+def get_s3_data_for_type_and_date_ranges(_s3_client, data_type: str, range_start: datetime,
+                                         range_end: datetime):
+    return s3_functions.get_s3_data_for_type_and_date_ranges(_s3_client, data_type, range_start, range_end)
+
+    
+
 def main():
     """Main logic to run dashboard."""
 
     load_dotenv()
 
-    database = MSSQL_Database()
-
+    # Fetching db data:
+    database = fetch_database_object()
     db_data = get_24hr_data('recording', database)
 
+
+    # Sidebar
     st.sidebar.title(f'Plant Selector')
 
     selected_plant = get_selected_plant(db_data)
-    data = get_individual_plant_data(db_data, selected_plant)
     st.sidebar.write('##')
     resample_rate = build_resample_rate_slider()
 
+
+    # Get current values
     idx = db_data.groupby('plant_id')['datetime'].idxmax()
 
     new_df = db_data.loc[
@@ -248,7 +286,24 @@ def main():
 
     st.title(f'Plant {selected_plant}')
 
-    build_moisture_header_and_metric(data, selected_plant)
+    # Datetime slider and selection from user
+    s3_client = fetch_s3_client_object()
+    min_s3_date = get_min_s3_date(s3_client).date()
+    date_range = build_date_range_slider(min_s3_date)
+    datetime_range = (datetime.combine(date_range[0], datetime.min.time()),
+                      datetime.combine(date_range[1] + timedelta(days=1), datetime.min.time()))
+
+    # Fetching data from db and s3
+    selected_plant_data = get_individual_plant_data(db_data, selected_plant)
+    s3_data = s3_functions.get_s3_data_for_type_and_date_ranges(s3_client, 'recording', date_range[0], date_range[1])
+    if not s3_data.empty:
+        selected_plant_s3_data = get_individual_plant_data(s3_data, selected_plant)
+        selected_plant_data = pd.concat([selected_plant_data, selected_plant_s3_data])
+
+    selected_plant_data = selected_plant_data[(selected_plant_data['datetime'] >= datetime_range[0]) &
+                                              (selected_plant_data['datetime'] <= datetime_range[1])]
+
+    build_moisture_header_and_metric(selected_plant_data, selected_plant)
 
     #  Placeholder
     with st.expander(f'Show graph.'):
@@ -257,7 +312,7 @@ def main():
 
         with col1:
 
-            moisture_data = get_moisture_data(data, resample_rate)
+            moisture_data = get_moisture_data(selected_plant_data, resample_rate)
             st.altair_chart(get_soil_moisture_chart(moisture_data))
 
         with col2:
@@ -283,10 +338,10 @@ def main():
 
     st.divider()
 
-    build_temperature_header_and_metric(data, selected_plant)
+    build_temperature_header_and_metric(selected_plant_data, selected_plant)
     with st.expander('Show graph.'):
 
-        temperature_data = get_temperature_data(data, resample_rate)
+        temperature_data = get_temperature_data(selected_plant_data, resample_rate)
         st.altair_chart(get_temperature_chart(temperature_data))
 
     display_sidebar_image(selected_plant)
