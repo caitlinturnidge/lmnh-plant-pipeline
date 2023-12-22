@@ -60,6 +60,18 @@ def upload_duties(duties: list, engine: db.Engine, conn: Connection, metadata) -
     except Exception as e:
         conn.rollback()
         raise e
+    
+
+def upload_images(images: list, engine: db.Engine, conn: Connection, metadata) -> None:
+    """Seeds database with image data."""
+    plant_table = db.Table('image', metadata, autoload_with=engine)
+
+    try:
+        conn.execute(plant_table.insert(), images)
+        conn.commit()
+    except Exception as e:
+        conn.rollback()
+        raise e
 
 
 def upload() -> None:
@@ -73,6 +85,9 @@ def upload() -> None:
     plants = plants_df.to_dict('records')
 
     duties = pd.read_csv('seed_duties.csv').replace(np.nan, None).to_dict('records')
+
+    images = pd.read_csv('seed_images.csv').to_dict('records')
+    images = images.rename(columns={'original_url': 'image_url'})
 
     engine = get_database_engine()
     conn = engine.connect()
