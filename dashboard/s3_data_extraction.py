@@ -37,6 +37,14 @@ def get_bucket_keys(s3_client: client, bucket_name: str = environ['BUCKET_NAME']
     return []
 
 
+def get_earliest_data_date(s3_client: client, bucket_name: str = environ['BUCKET_NAME']):
+    """Function to return the earliest month there is data for in the s3 bucket."""
+    keys = get_bucket_keys(s3_client, bucket_name)
+    keys.sort(key = lambda file_name: int(''.join(file_name.split('/')[:-1])))
+    return datetime(year = int(keys[0].split('/')[0]), month = int(keys[0].split('/')[1]), day = 1)
+
+
+
 def get_s3_data_for_type_and_date_ranges(s3_client, data_type: str, range_start: datetime,
                                          range_end: datetime = TODAY,
                                          bucket_name: str = environ['BUCKET_NAME']):
@@ -44,12 +52,15 @@ def get_s3_data_for_type_and_date_ranges(s3_client, data_type: str, range_start:
     Downloads relevant s3 files for every month between the two dates (including the months in
     which they themselves fall).
     """
+    if range_start > (datetime.now() - timedelta(days = 1)).date():
+        return pd.DataFrame()
+
     keys = get_bucket_keys(s3_client, bucket_name)
 
     int_start = int(str(range_start.year) + str(range_start.month))
     int_end = int(str(range_end.year) + str(range_end.month))
 
-    keys = [key for key in keys if int_start < int(''.join(key.split('/')[:-1])) < int_end]
+    keys = [key for key in keys if int_start <= int(''.join(key.split('/')[:-1])) <= int_end]
     # Filters keys by date_range
     keys = [key for key in keys if data_type in key]
     # Filters keys by datatype
@@ -63,9 +74,12 @@ def get_s3_data_for_type_and_date_ranges(s3_client, data_type: str, range_start:
         try:
             # This way would allow us to monitor df size and decrease resolution as needed
             df_csv = pd.read_csv(response.get("Body"))
-            df = pd.concat(df, df_csv)
-        except pd.errors.EmptyDataError:
+            df = pd.concat([df, df_csv])
+        except pd.errors.EmptyDataError as e:
             pass
+
+    if not df.empty:
+        df['datetime'] = pd.to_datetime(df['datetime'])
 
     return df
 
@@ -74,5 +88,5 @@ if __name__ == "__main__":
 
     s3_client = create_s3_client()
 
-    print(get_bucket_keys(s3_client))
+    print(get_s3_data_for_type_and_date_ranges(s3_client, 'recording', range_start=datetime.today()-timedelta(days=1)))
 
