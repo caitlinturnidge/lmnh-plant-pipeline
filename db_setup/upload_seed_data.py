@@ -28,7 +28,7 @@ def get_database_engine():
 
 def upload_locations(locations: list, engine: db.Engine, conn: Connection, metadata) -> None:
     """Seeds database with location data."""
-    location_table = db.Table('location', metadata, autoload_with=engine)
+    location_table = db.Table('location_test', metadata, autoload_with=engine)
 
     try:
         conn.execute(location_table.insert(), locations)
@@ -40,7 +40,7 @@ def upload_locations(locations: list, engine: db.Engine, conn: Connection, metad
 
 def upload_plants(plants: list, engine: db.Engine, conn: Connection, metadata) -> None:
     """Seeds database with plant data."""
-    plant_table = db.Table('plant', metadata, autoload_with=engine)
+    plant_table = db.Table('plant_test', metadata, autoload_with=engine)
 
     try:
         conn.execute(plant_table.insert(), plants)
@@ -52,10 +52,22 @@ def upload_plants(plants: list, engine: db.Engine, conn: Connection, metadata) -
 
 def upload_duties(duties: list, engine: db.Engine, conn: Connection, metadata) -> None:
     """Seeds database with information about each botanists responsibility."""
-    duty_table = db.Table('duty', metadata, autoload_with=engine)
+    duty_table = db.Table('duty_test', metadata, autoload_with=engine)
 
     try:
         conn.execute(duty_table.insert(), duties)
+        conn.commit()
+    except Exception as e:
+        conn.rollback()
+        raise e
+    
+
+def upload_images(images: list, engine: db.Engine, conn: Connection, metadata) -> None:
+    """Seeds database with image data."""
+    plant_table = db.Table('image_test', metadata, autoload_with=engine)
+
+    try:
+        conn.execute(plant_table.insert(), images)
         conn.commit()
     except Exception as e:
         conn.rollback()
@@ -74,6 +86,8 @@ def upload() -> None:
 
     duties = pd.read_csv('seed_duties.csv').replace(np.nan, None).to_dict('records')
 
+    images = pd.read_csv('seed_images.csv').to_dict('records')
+
     engine = get_database_engine()
     conn = engine.connect()
     metadata = db.MetaData(schema=environ['DB_SCHEMA'])
@@ -83,6 +97,8 @@ def upload() -> None:
     upload_plants(plants, engine, conn, metadata)
 
     upload_duties(duties, engine, conn, metadata)
+
+    upload_images(images, engine, conn, metadata)
 
 
 if __name__ == "__main__":

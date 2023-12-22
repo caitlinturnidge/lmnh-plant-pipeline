@@ -66,7 +66,7 @@ def cross_reference_location(location_info: list[str], unique_locations: list[di
 
 def get_plant_details(data: dict, locations: list[dict]) -> dict:
     """Returns plant data as dictionary."""
-    relevant_cols = ['plant_id', 'name', 'scientific_name', 'origin_location']
+    relevant_cols = ["plant_id", "name", "scientific_name", "origin_location"]
 
     details = {key: data.get(key) for key in relevant_cols}
     if details["scientific_name"]:
@@ -94,11 +94,28 @@ def get_duty_information(data: dict) -> dict:
     return duty_dict
 
 
+def get_image_details(data: dict):
+    """Extracts the image data for each plant."""
+    plant_id = data.get("plant_id")
+    image_dict = data.get("images")
+    if not image_dict:
+        return None
+    image_info = {
+        "plant_id" : plant_id,
+        "image_url" : image_dict.get("regular_url"),
+        "license" : image_dict.get("license"),
+        "license_name" : image_dict.get("license_name"),
+        "license_url" : image_dict.get("license_url")
+    }
+    return image_info
+
+
 def extract() -> None:
     """Function produces 3 .csv files with seed information for the database."""
     plant_info = []
     unique_locations = []
     duties = []
+    images = []
 
     for plant_id in range(PLANT_RANGE):
         result = get_plant_data(plant_id)
@@ -106,15 +123,20 @@ def extract() -> None:
         duty_info = get_duty_information(result)
         if duty_info:
             duties.append(duty_info)
+        image_info = get_image_details(result)
+        if image_info:
+            images.append(image_info)
         plant_info.append(details)
 
     location_details = pd.DataFrame(unique_locations)
     plant_details = pd.DataFrame(plant_info)
     duty_details = pd.DataFrame(duties)
+    image_details = pd.DataFrame(images)
 
     location_details.to_csv("seed_locations.csv", index=False)
     plant_details.to_csv("seed_plants.csv", index=False)
     duty_details.to_csv("seed_duties.csv", index=False)
+    image_details.to_csv("seed_images.csv", index=False)
 
 
 if __name__ == "__main__":
