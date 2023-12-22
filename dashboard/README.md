@@ -15,20 +15,19 @@ The requirements are:
 
 The following libraries are required to run the dashboard:
 
-```python3
-pandas
-altair
-sqlalchemy
-streamlit
-pytest
-pylint
-ipykernel
-python-dotenv
-```
+- pandas
+- altair
+- sqlalchemy
+- streamlit
+- pytest
+- pylint
+- ipykernel
+- python-dotenv
+
+Run `pip install -r requirements.txt`
 
 ### Usage
 
 - Extracts data from RDS from past 24 hours
 - Creates dataframes for time series of temperature and moisture
 - Creates streamlit dashboard
-- TODO: dockerise and deploy

@@ -4,13 +4,13 @@
 
 This folder contains the files required to set up the initial database and files to seed this database with static data. This allows for soil moisture and temperature plant recordings to be added when the pipeline runs.
 
-## pipeline
+## minute_pipeline
 
-This folder contains the files required to run the pipeline that gets the plant data from the api, loads it into the database and takes old data from the database and adds it to S3 to be stored in long term storage.
+This folder contains the files required to run the minute pipeline that gets the plant data from the api, loads it into the short term database and takes old data (from over 24 hours ago) from this database and adds it to S3 to be stored in long term storage.
 
-## s3_data_management
+## daily_pipeline
 
-This folder contains the file that manages the S3 long term storage. It puts data from the previous day into the correct year and month files in S3.
+This folder contains the files to run the daily pipeline at 00:15. Firstly, it organizes the S3 long term storage by adding data from the previous day into the correct year and month files in S3. It also updates the duties table in the database, to check the duties of each plant have not changed.
 
 ## dashboard
 
@@ -18,4 +18,4 @@ This folder contains the files that create the plant analytics dashboard. It sho
 
 ## terraform
 
-This folder contains the files that create cloud resources for the pipeline, dashboard and S3 management files to be ran on the cloud.
+This folder contains the files to create all the cloud resources for both the pipelines and dashboard.  

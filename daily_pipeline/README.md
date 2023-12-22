@@ -1,4 +1,28 @@
-## s3_data_management
+## Daily Pipeline
+
+This pipeline runs at 00:15 each day. It runs the S3 data management followed by the update duties script.
+
+
+### Add these values to a .env file
+
+- DB_HOST
+- DB_PORT
+- DB_USER
+- DB_PASSWORD
+- DB_NAME
+- DB_SCHEMA
+- AWS_ACCESS_KEY_ID_
+- AWS_SECRET_ACCESS_KEY_A
+- BUCKET_NAME
+
+### Running daily_pipeline.py
+
+- Run `pip install -r requirements`
+- Run `daily_pipeline.py`
+
+## What does each script do?
+
+### s3_data_management.py
 
 Contains files for management of data in s3 bucket; to be run daily *after* midnight, to combine the csv from the day before into the monthly csv. Assumes an s3 file structure as follows:
 - `{year}`
@@ -44,6 +68,6 @@ And, after the script is run, would look like:
 
 At the end of each month, the month folder will contain only two csv files, `watering.csv` and `recording.csv`.
 
-### Requirements to run
-- Written to use a .env file with AWS_SECRET_ACCESS_KEY, AWS_ACCESS_KEY_ID, BUCKET_NAME.
-- Library requirements in file `requirements.txt`
+### update_duties.py
+
+Each day, this script checks to see if the duties (the carer of each plant) have changed. If they have, then this updates the plant-duties table to make sure the duties are up do date. If the duties get updated more frequently than we are assuming, then note that this script can be ran more often to keep them even more up to date.
