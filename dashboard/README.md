@@ -1,6 +1,6 @@
 # LMNH Plant Sensors Dashboard
 
-This repository contains the code for the LMNH Plant Sensors Dashboard, a real-time data visualisation tool for the Liverpool Natural History Museum. The dashboard provides real-time and historical data on plant health, allowing the museum staff to monitor and manage their gardens effectively.
+This repository contains the code for the **Plant Health Tracker**™, a real-time data visualisation tool for the Liverpool Natural History Museum. The dashboard provides real-time and historical data on plant health, allowing the museum staff to monitor and manage their gardens effectively.
 
 
 #### Here's what it looks like...
