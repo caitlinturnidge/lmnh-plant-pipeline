@@ -1,6 +1,5 @@
 """Database functions for dashboard."""
 
-import pandas as pd
 from datetime import timedelta, datetime
 from os import environ
 
@@ -62,3 +61,17 @@ def get_24hr_data(table_name: str, database: MSSQL_Database,
 
     except Exception as e:
         raise e
+
+
+def get_plant_image_url(plant_id: int, database: MSSQL_Database) -> pd.DataFrame:
+    """Retrieves pandas df of first image in db image table with specified plant id."""
+    try:
+        image_table = db.Table('image', database.metadata, autoload_with=database.engine)
+        query = db.select(image_table).where(image_table.columns.plant_id == plant_id)
+        response = database.connection.execute(query)
+        result = response.first()
+        return list(result)[2]
+
+    except Exception as e:
+        return None
+        # Non critical
