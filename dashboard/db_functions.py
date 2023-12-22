@@ -1,7 +1,6 @@
 """Database functions for dashboard."""
 
 import pandas as pd
-import streamlit as st
 from datetime import timedelta, datetime
 from os import environ
 
@@ -46,8 +45,8 @@ class MSSQL_Database():
         self.connection.close()
 
 
-@st.cache_data(show_spinner='Plants be loading... 🌱')
-def get_24hr_data(table_name: str, _db_engine: db.Engine, _connection: Connection, _metadata,
+
+def get_24hr_data(table_name: str, database: MSSQL_Database,
                   datetime_cutoff: str = LITERAL_DAY_AGO):
     """
     Retrieves records from the last 24 hours (by attribute 'datetime') from db table with given
