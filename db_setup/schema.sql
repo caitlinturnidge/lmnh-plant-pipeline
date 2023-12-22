@@ -1,7 +1,7 @@
 USE plants;
 GO
 
-DROP TABLE if exists s_beta.watering, s_beta.duty, s_beta.recording, s_beta.botanist, s_beta.plant, s_beta.location;
+DROP TABLE if exists s_beta.image, s_beta.watering, s_beta.duty, s_beta.recording, s_beta.botanist, s_beta.plant, s_beta.location;
 GO
 
 CREATE TABLE s_beta.recording (
@@ -91,6 +91,21 @@ ALTER TABLE
     s_beta.duty ADD CONSTRAINT "duty_id_primary" PRIMARY KEY("id");
 GO
 
+CREATE TABLE s_beta.image (
+    "id" INT IDENTITY(1,1),
+    "plant_id" INT NOT NULL,
+    "image_url" VARCHAR(500) NOT NULL,
+    "license" INT,
+    "license_name" VARCHAR(255),
+    "license_url" VARCHAR(255),
+);
+GO
+
+ALTER TABLE
+    s_beta.image ADD CONSTRAINT "image_id_primary" PRIMARY KEY("id");
+GO
+
+
 ALTER TABLE
  s_beta.recording  ADD CONSTRAINT "recording_plant_id_foreign" FOREIGN KEY("plant_id") REFERENCES s_beta.plant("id");
 GO
@@ -109,3 +124,8 @@ GO
 
 ALTER TABLE
     s_beta.duty ADD CONSTRAINT "duty_botanist_id_foreign" FOREIGN KEY("botanist_id") REFERENCES s_beta.botanist("id");
+GO
+
+ALTER TABLE
+ s_beta.image  ADD CONSTRAINT "image_plant_id_foreign" FOREIGN KEY("plant_id") REFERENCES s_beta.plant("id");
+GO
