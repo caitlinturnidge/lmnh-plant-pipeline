@@ -19,3 +19,7 @@ Add these environment variables to a `terraform.tfvars` file
 - Run `terraform init`
 - Run `terraform apply` to create all cloud resources
 - Run `terraform destroy` to delete all cloud resources
+
+## Assumptions
+
+- The ECR images for daily pipeline, minute pipeline and the dashboard already exist. 

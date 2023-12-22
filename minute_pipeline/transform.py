@@ -1,6 +1,7 @@
 """File to clean and transform the extracted data from the API, so that its ready to be loaded."""
 import pandas as pd
 
+
 def transform(recording_df, watering_df):
     """Cleans the extracted data frames."""
     recording_df['recording_taken'] = pd.to_datetime(
