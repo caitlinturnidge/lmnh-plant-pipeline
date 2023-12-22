@@ -2,14 +2,12 @@
 
 This repository contains the code for the **Plant Health Tracker**™, a real-time data visualisation tool for the Liverpool Natural History Museum. The dashboard provides real-time and historical data on plant health, allowing the museum staff to monitor and manage their gardens effectively.
 
-
 #### Here's what it looks like...
 
- <video width="600" controls>
- <source src="plant-dashboard-demo.mp4" type="video/mp4">
- Your browser does not support the video tag.
- </video>
+<figure>
+ <img src="plant-dashboard-demo.gif" alt="Plant Dashboard Demo" width="600">
  <figcaption>Plant Health Tracker Demo</figcaption>
+</figure>
 
 
 ## 📋 Requirements
