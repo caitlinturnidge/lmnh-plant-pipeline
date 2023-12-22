@@ -48,7 +48,7 @@ All the cloud resources required for the pipelines and dashboard are created usi
 
 This is the architect diagram for the cloud resources:
 
-<img src="architect_diagram.jpeg" alt="Architect Diagram" width="500"/>
+<img src="architect_diagram.png" alt="Architect Diagram" width="500"/>
 
 ### Minute Pipeline:
 1. EventBridge schedule [1] running every minute, triggering lambda function [1].
